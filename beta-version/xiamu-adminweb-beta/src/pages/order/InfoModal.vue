@@ -60,7 +60,7 @@
           <div class="ml-2 text-sm">
             <p>{{ item.goods_item ? item.goods_item.title : '商品已删除' }}</p>
             <p class="mt-1 text-xs text-gray-600">机器编码：{{ item.machine_code || '未记录' }}</p>
-            <order-inventory :order-id="item.order_id || info.id" :inventory="item.inventory" readonly />
+            <order-inventory :inventory="item.inventory" />
             <p v-if="item.order_no" class="mt-1 text-xs text-gray-500">订单编号：{{ item.order_no }}</p>
             <p v-if="item.sku" class="mt-1">
               <el-tag type="info" size="small">{{ item.sku }}</el-tag>

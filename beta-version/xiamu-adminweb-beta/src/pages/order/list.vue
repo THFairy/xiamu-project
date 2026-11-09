@@ -91,7 +91,7 @@
             <div class="mt-0">
               <p class="text-blue-500">{{ item.goods_item ? item.goods_item.title : '商品已删除' }}</p>
               <p class="text-gray-600">机器编码：{{ item.machine_code || '未记录' }}</p>
-              <order-inventory :order-id="item.order_id || row.id" :inventory="item.inventory" @updated="item.inventory = $event" />
+              <order-inventory :inventory="item.inventory" />
               <small v-if="item.sku" class="text-gray-500">{{ item.sku }}</small>
             </div>
           </div>
