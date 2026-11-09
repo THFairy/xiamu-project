@@ -164,11 +164,11 @@
       <text class="wechat-profile-title">完善微信资料</text>
       <text class="wechat-profile-desc">请选择微信头像并填写微信昵称，已授权手机号将自动作为用户名。</text>
 
-      <button class="wechat-avatar-picker" open-type="chooseAvatar" bindchooseavatar="onWechatAvatarChoose">
+      <button class="wechat-avatar-picker" open-type="chooseAvatar" disabled="{{wechatAvatarChoosing}}" bindtap="onWechatAvatarPickerTap" bindchooseavatar="onWechatAvatarChoose">
         <image class="wechat-avatar-preview" src="{{draftProfile.avatarUrl}}" mode="aspectFill"></image>
         <view class="wechat-avatar-copy">
           <text class="wechat-auth-label">微信头像</text>
-          <text class="wechat-auth-hint">点击选择微信头像</text>
+          <text class="wechat-auth-hint">{{wechatAvatarChoosing ? '正在打开头像选择' : '点击选择微信头像'}}</text>
         </view>
         <text class="wechat-auth-arrow">›</text>
       </button>
