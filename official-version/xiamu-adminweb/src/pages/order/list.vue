@@ -77,7 +77,7 @@
         </template>
       </el-table-column>
 
-      <el-table-column label="商品信息" width="320">
+      <el-table-column label="商品信息" width="260">
         <template #default="{ row }">
           <div v-for="(item, index) in row.order_items || []" :key="`${row.id}-${index}`" class="flex py-2">
             <el-image
@@ -90,10 +90,21 @@
             />
             <div class="mt-0">
               <p class="text-blue-500">{{ item.goods_item ? item.goods_item.title : '商品已删除' }}</p>
-              <p class="text-gray-600">机器编码：{{ item.machine_code || '未记录' }}</p>
               <order-inventory :inventory="item.inventory" />
               <small v-if="item.sku" class="text-gray-500">{{ item.sku }}</small>
             </div>
+          </div>
+        </template>
+      </el-table-column>
+
+      <el-table-column label="机器编码" width="160" align="center">
+        <template #default="{ row }">
+          <div
+            v-for="(item, index) in row.order_items || []"
+            :key="`${row.id}-machine-code-${index}`"
+            class="py-2"
+          >
+            {{ item.machine_code || '未记录' }}
           </div>
         </template>
       </el-table-column>
