@@ -1245,7 +1245,7 @@ const submitInspection = (action) => {
 
     inspectionSubmitting.value = true
     inspectionAction.value = action
-    const ensureApproved = ['approved', 'published', 'reviewed'].includes(String(inspectionCurrentRow.value?.status || ''))
+    const ensureApproved = ['published', 'reviewed'].includes(String(inspectionCurrentRow.value?.status || ''))
         ? Promise.resolve(inspectionCurrentRow.value)
         : reviewRecycleSubmission(submissionId, {
             title: incorrectForm.title,
