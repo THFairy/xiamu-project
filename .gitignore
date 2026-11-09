@@ -1,8 +1,6 @@
 # 用途：忽略依赖、构建产物、私密配置、运行数据及本地版本备份，防止敏感或无关文件上传 GitHub。
 
-# 本地版本源备份：Git 分支实际使用仓库根目录下的三个项目目录
-/official-version/
-/beta-version/
+# 正式版和测试版分别由 main、beta 分支记录
 /database-backups/
 /.git-old-backup-*/
 /.git-empty-backup/
@@ -24,6 +22,9 @@
 !/xiamu-adminweb/.env.development
 !/xiamu-adminweb/.env.production
 !/xiamu-adminweb/.env.production-console
+!/**/xiamu-adminweb*/.env.development
+!/**/xiamu-adminweb*/.env.production
+!/**/xiamu-adminweb*/.env.production-console
 
 # 证书、密钥与签名材料
 **/certs/
@@ -64,3 +65,6 @@
 .agents/
 .DS_Store
 Thumbs.db
+
+# 当前分支仅记录对应版本
+/beta-version/

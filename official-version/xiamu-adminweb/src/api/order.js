@@ -42,3 +42,11 @@ export function exportOrder(query = {}) {
 export function getShipInfo(id) {
     return axios.get(`/admin/order/${id}/get_ship_info`)
 }
+
+export function getOrderInventoryOptions(id, keyword = '') {
+    return axios.get(`/admin/order/${id}/inventory`, { params: { keyword } })
+}
+
+export function setOrderInventory(id, inventoryId) {
+    return axios.post(`/admin/order/${id}/inventory`, { inventoryId }, { skipAutoRefresh: true })
+}

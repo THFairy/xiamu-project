@@ -4547,8 +4547,19 @@ const deleteAdminInventoryManagement = async (id) => {
   if (!inventoryId) {
     return false;
   }
-  const [result] = await getPool().execute('DELETE FROM inventory_management WHERE id = ?', [inventoryId]);
-  return Number(result.affectedRows || 0) > 0;
+  const connection = await getPool().getConnection();
+  try {
+    await connection.beginTransaction();
+    await connection.execute('DELETE FROM inventory_management_order_links WHERE inventory_id = ?', [inventoryId]);
+    const [result] = await connection.execute('DELETE FROM inventory_management WHERE id = ?', [inventoryId]);
+    await connection.commit();
+    return Number(result.affectedRows || 0) > 0;
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
 };
 
 const deleteAdminInventoryManagementBatch = async (ids = []) => {
@@ -4560,11 +4571,25 @@ const deleteAdminInventoryManagementBatch = async (ids = []) => {
   }
 
   const placeholders = normalizedIds.map(() => '?').join(', ');
-  const [result] = await getPool().execute(
-    `DELETE FROM inventory_management WHERE id IN (${placeholders})`,
-    normalizedIds
-  );
-  return Number(result.affectedRows || 0);
+  const connection = await getPool().getConnection();
+  try {
+    await connection.beginTransaction();
+    await connection.execute(
+      `DELETE FROM inventory_management_order_links WHERE inventory_id IN (${placeholders})`,
+      normalizedIds
+    );
+    const [result] = await connection.execute(
+      `DELETE FROM inventory_management WHERE id IN (${placeholders})`,
+      normalizedIds
+    );
+    await connection.commit();
+    return Number(result.affectedRows || 0);
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
 };
 
 const parseInventoryOrderDate = (value, fallbackTimestamp = 0) => {
@@ -6062,12 +6087,32 @@ const buildAdminOrderWhere = async ({ tab = 'all', no = '', name = '', phone = '
   };
 };
 
+const getAdminOrderInventoryImages = (customFieldsValue) => {
+  const customFields = safeParseJsonObject(customFieldsValue, {});
+  return Array.from(new Set(
+    Object.entries(customFields)
+      .filter(([key, value]) => key.endsWith(INVENTORY_IMAGE_VALUE_SUFFIX) || Array.isArray(value))
+      .flatMap(([, value]) => normalizeInventoryImageUrls(value))
+      .map((url) => toWebAssetUrl(url))
+      .filter(Boolean)
+  ));
+};
+
+const mapAdminOrderInventory = (row = {}) => Number(row.linked_inventory_id || 0)
+  ? {
+      id: Number(row.linked_inventory_id),
+      inventory_number: String(row.linked_inventory_number || '').trim(),
+      images: getAdminOrderInventoryImages(row.linked_inventory_custom_fields),
+    }
+  : null;
+
 const getAdminOrderBaseSelectSql = async (whereSql, limitSql = '') => {
   const userUidSql = await getUserUidSelectSql('u');
 
   return `
   SELECT
     po.*,
+    p.product_id AS current_machine_code,
     COALESCE(NULLIF(TRIM(p.title), ''), po.product_title_snapshot) AS product_title,
     COALESCE(NULLIF(TRIM(p.hero_image), ''), po.product_cover_snapshot) AS product_hero_image,
     COALESCE(NULLIF(TRIM(p.cover_title), ''), po.product_cover_title_snapshot) AS product_cover_title,
@@ -6082,11 +6127,17 @@ const getAdminOrderBaseSelectSql = async (whereSql, limitSql = '') => {
     a.province AS address_province,
     a.city AS address_city,
     a.district AS address_district,
-    a.address_detail AS address_detail_full
+    a.address_detail AS address_detail_full,
+    linked_inventory.id AS linked_inventory_id,
+    linked_inventory.inventory_number AS linked_inventory_number,
+    linked_inventory.custom_fields AS linked_inventory_custom_fields
   FROM purchase_orders po
   LEFT JOIN products p ON p.id = po.product_id
   LEFT JOIN users u ON u.open_id = po.open_id
   LEFT JOIN addresses a ON a.id = po.address_id
+  LEFT JOIN inventory_management_order_links inventory_link
+    ON inventory_link.source_type = 'purchase_order' AND inventory_link.source_order_id = po.id
+  LEFT JOIN inventory_management linked_inventory ON linked_inventory.id = inventory_link.inventory_id
   WHERE ${whereSql}
   ORDER BY po.created_at DESC, po.id DESC
   ${limitSql}
@@ -6157,10 +6208,13 @@ const mapAdminOrderRow = (row, options = {}) => {
     order_items: [
       {
         id: Number(row.product_id || 0),
+        order_id: Number(row.id || 0),
         num: 1,
         price: Number(row.total_amount || row.product_price || 0),
         skus_type: 0,
         goods_skus: null,
+        inventory: mapAdminOrderInventory(row),
+        machine_code: String(row.product_code_snapshot || row.current_machine_code || '').trim(),
         goods_item:
           Number(row.product_id || 0) || row.product_title || row.product_cover_title || row.product_code_snapshot
           ? {
@@ -6176,6 +6230,91 @@ const mapAdminOrderRow = (row, options = {}) => {
     result.open_id = String(row.open_id || '');
   }
   return result;
+};
+
+const listAdminOrderInventoryOptions = async (orderId, keyword = '') => {
+  const normalizedOrderId = Number(orderId || 0);
+  if (!normalizedOrderId) return [];
+
+  const search = normalizeInventoryText(keyword);
+  const filters = ["(inventory_link.id IS NULL OR (inventory_link.source_type = 'purchase_order' AND inventory_link.source_order_id = ?))"];
+  const params = [normalizedOrderId];
+  if (search) {
+    filters.push('(inventory.inventory_number LIKE ? OR inventory.inspection_report LIKE ? OR inventory.custom_fields LIKE ?)');
+    params.push(`%${search}%`, `%${search}%`, `%${search}%`);
+  }
+  params.push(normalizedOrderId);
+
+  const [rows] = await getPool().execute(
+    `SELECT
+       inventory.id AS linked_inventory_id,
+       inventory.inventory_number AS linked_inventory_number,
+       inventory.custom_fields AS linked_inventory_custom_fields
+     FROM inventory_management inventory
+     LEFT JOIN inventory_management_order_links inventory_link ON inventory_link.inventory_id = inventory.id
+     WHERE ${filters.join(' AND ')}
+     ORDER BY CASE WHEN inventory_link.source_order_id = ? THEN 0 ELSE 1 END, inventory.id DESC
+     LIMIT 100`,
+    params
+  );
+  return rows.map(mapAdminOrderInventory).filter(Boolean);
+};
+
+const setAdminOrderInventory = async (orderId, inventoryId) => {
+  const normalizedOrderId = Number(orderId || 0);
+  const normalizedInventoryId = Number(inventoryId || 0);
+  if (!Number.isSafeInteger(normalizedOrderId) || normalizedOrderId <= 0) throw new Error('订单编号无效');
+  if (!Number.isSafeInteger(normalizedInventoryId) || normalizedInventoryId < 0) throw new Error('库存记录无效');
+
+  const connection = await getPool().getConnection();
+  try {
+    await connection.beginTransaction();
+    const [orders] = await connection.execute(
+      'SELECT id FROM purchase_orders WHERE id = ? LIMIT 1 FOR UPDATE',
+      [normalizedOrderId]
+    );
+    if (!orders.length) throw new Error('订单不存在');
+
+    if (normalizedInventoryId) {
+      const [inventoryRows] = await connection.execute(
+        'SELECT id FROM inventory_management WHERE id = ? LIMIT 1 FOR UPDATE',
+        [normalizedInventoryId]
+      );
+      if (!inventoryRows.length) throw new Error('库存机器不存在');
+
+      const [existingLinks] = await connection.execute(
+        'SELECT source_type, source_order_id FROM inventory_management_order_links WHERE inventory_id = ? LIMIT 1 FOR UPDATE',
+        [normalizedInventoryId]
+      );
+      const occupiedByAnotherOrder = existingLinks.some((link) => (
+        String(link.source_type || '') !== 'purchase_order'
+        || Number(link.source_order_id || 0) !== normalizedOrderId
+      ));
+      if (occupiedByAnotherOrder) throw new Error('这台机器已关联到其他订单');
+
+      const now = Date.now();
+      await connection.execute(
+        `INSERT INTO inventory_management_order_links (source_type, source_order_id, inventory_id, created_at, updated_at)
+         VALUES ('purchase_order', ?, ?, ?, ?)
+         ON DUPLICATE KEY UPDATE inventory_id = VALUES(inventory_id), updated_at = VALUES(updated_at)`,
+        [normalizedOrderId, normalizedInventoryId, now, now]
+      );
+    } else {
+      await connection.execute(
+        "DELETE FROM inventory_management_order_links WHERE source_type = 'purchase_order' AND source_order_id = ?",
+        [normalizedOrderId]
+      );
+    }
+    await connection.commit();
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
+
+  const order = await getAdminOrderById(normalizedOrderId);
+  return order?.order_items?.[0]?.inventory || null;
 };
 
 const getAdminOrderDisplayStatus = (row) => {
@@ -6292,11 +6431,14 @@ const mapAdminPaymentBatchRow = (row, relatedOrders = []) => ({
   },
   order_items: relatedOrders.map((item) => ({
     id: Number(item.product_id || 0),
+    order_id: Number(item.id || 0),
     num: 1,
     price: Number(item.total_amount || 0),
     skus_type: 0,
     goods_skus: null,
     order_no: String(item.order_no || ''),
+    inventory: mapAdminOrderInventory(item),
+    machine_code: String(item.product_code_snapshot || item.current_machine_code || '').trim(),
     goods_item:
       Number(item.product_id || 0) || item.product_title || item.product_cover_title || item.product_code_snapshot
       ? {
@@ -6375,6 +6517,7 @@ const listAdminPaymentBatches = async ({
           po.total_amount,
           po.product_id,
           po.product_code_snapshot,
+          p.product_id AS current_machine_code,
           po.product_price_snapshot,
           po.status,
           po.ship_status,
@@ -6384,9 +6527,15 @@ const listAdminPaymentBatches = async ({
           po.ship_data,
           COALESCE(NULLIF(TRIM(p.title), ''), po.product_title_snapshot) AS product_title,
           COALESCE(NULLIF(TRIM(p.hero_image), ''), po.product_cover_snapshot) AS product_hero_image,
-          COALESCE(NULLIF(TRIM(p.cover_title), ''), po.product_cover_title_snapshot) AS product_cover_title
+          COALESCE(NULLIF(TRIM(p.cover_title), ''), po.product_cover_title_snapshot) AS product_cover_title,
+          linked_inventory.id AS linked_inventory_id,
+          linked_inventory.inventory_number AS linked_inventory_number,
+          linked_inventory.custom_fields AS linked_inventory_custom_fields
         FROM purchase_orders po
         LEFT JOIN products p ON p.id = po.product_id
+        LEFT JOIN inventory_management_order_links inventory_link
+          ON inventory_link.source_type = 'purchase_order' AND inventory_link.source_order_id = po.id
+        LEFT JOIN inventory_management linked_inventory ON linked_inventory.id = inventory_link.inventory_id
         WHERE po.id IN (${placeholders})
       `,
       allOrderIds
@@ -6472,11 +6621,27 @@ const deleteAdminOrders = async (ids = []) => {
   }
 
   const placeholders = normalizedIds.map(() => '?').join(', ');
-  const [result] = await getPool().execute(
-    `DELETE FROM purchase_orders WHERE id IN (${placeholders}) AND ${buildPaidPurchaseOrderSql('purchase_orders')}`,
-    normalizedIds
-  );
-  return Number(result.affectedRows || 0);
+  const connection = await getPool().getConnection();
+  try {
+    await connection.beginTransaction();
+    await connection.execute(
+      `DELETE inventory_link FROM inventory_management_order_links inventory_link
+       INNER JOIN purchase_orders po ON po.id = inventory_link.source_order_id
+       WHERE inventory_link.source_type = 'purchase_order' AND po.id IN (${placeholders}) AND ${buildPaidPurchaseOrderSql('po')}`,
+      normalizedIds
+    );
+    const [result] = await connection.execute(
+      `DELETE FROM purchase_orders WHERE id IN (${placeholders}) AND ${buildPaidPurchaseOrderSql('purchase_orders')}`,
+      normalizedIds
+    );
+    await connection.commit();
+    return Number(result.affectedRows || 0);
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
 };
 
 const deleteAdminPaymentBatches = async (ids = []) => {
@@ -10005,6 +10170,7 @@ module.exports = {
   handleAdminOrderRefund,
   updateAdminPaymentBatchStatus,
   updateAdminOrderStatus,
+  setAdminOrderInventory,
   updateAdminStaffPermissions,
   recordUserActivityEvent,
   recordUserOnlineSession,
@@ -10030,6 +10196,7 @@ module.exports = {
   listAdminNotices,
   listAdminPaymentBatches,
   listAdminOrders,
+  listAdminOrderInventoryOptions,
   listAdminStaff,
   listAdminUsers,
   listAdminUserLevels,
