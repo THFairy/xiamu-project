@@ -295,6 +295,12 @@ const mapReviewRow = (row) => ({
   createdAt: Number(row.created_at || 0),
 });
 
+// 将库存物理字段和自定义字段还原为检测表单可直接使用的数据结构。
+const mapInspectionInventoryValues = (row) => ({
+  ...Object.fromEntries(INSPECTION_INVENTORY_TEXT_FIELDS.map((field) => [field, normalizeText(row[field])])),
+  ...safeParseJsonObject(row.custom_fields),
+});
+
 const getSubmissionRowById = async (connection, submissionId) => {
   const [rows] = await connection.execute(
     `
@@ -400,7 +406,8 @@ const normalizeInspectionInventoryValues = (values) => (
   values && typeof values === 'object' && !Array.isArray(values) ? values : {}
 );
 
-const createInspectedInventory = async (connection, values, current, now) => {
+// 将回收检测信息写入库存；同一回收订单再次提交时更新原记录，避免重复入库。
+const upsertInspectedInventory = async (connection, values, current, now) => {
   const sourceValues = normalizeInspectionInventoryValues(values);
   const [columnRows] = await connection.execute(
     `SELECT column_key, label, field_type
@@ -418,8 +425,16 @@ const createInspectedInventory = async (connection, values, current, now) => {
     fieldType: normalizeText(row.field_type).toLowerCase(),
     calculated: calculationTargets.has(normalizeText(row.column_key)),
   }));
-  const physicalValues = Object.fromEntries(INSPECTION_INVENTORY_TEXT_FIELDS.map((field) => [field, '']));
-  const customFields = {};
+  const [existingRows] = await connection.execute(
+    'SELECT * FROM inventory_management WHERE recycle_id = ? ORDER BY id DESC LIMIT 1 FOR UPDATE',
+    [normalizeText(current.orderNo)]
+  );
+  const existing = existingRows[0] || null;
+  const physicalValues = Object.fromEntries(INSPECTION_INVENTORY_TEXT_FIELDS.map((field) => [
+    field,
+    existing ? normalizeText(existing[field]) : '',
+  ]));
+  const customFields = existing ? safeParseJsonObject(existing.custom_fields) : {};
 
   configuredColumns.forEach((column) => {
     if (!column.key || column.calculated) return;
@@ -459,15 +474,30 @@ const createInspectedInventory = async (connection, values, current, now) => {
   // 回收检测与库存管理共用按月序列，编号不再依赖库存表自增 id。
   physicalValues.inventory_number = physicalValues.inventory_number || await createNextInventoryNumber(connection, now);
 
+  if (existing) {
+    await connection.execute(
+      `UPDATE inventory_management
+       SET ${INSPECTION_INVENTORY_TEXT_FIELDS.map((field) => `${field} = ?`).join(', ')}, custom_fields = ?, updated_at = ?
+       WHERE id = ?`,
+      [
+        ...INSPECTION_INVENTORY_TEXT_FIELDS.map((field) => physicalValues[field] || ''),
+        JSON.stringify(customFields),
+        now,
+        Number(existing.id || 0),
+      ]
+    );
+    return { inventoryId: Number(existing.id || 0), created: false };
+  }
+
   const [result] = await connection.execute(
     `INSERT INTO inventory_management (${INSPECTION_INVENTORY_TEXT_FIELDS.join(', ')}, custom_fields, created_at, updated_at)
      VALUES (${INSPECTION_INVENTORY_TEXT_FIELDS.map(() => '?').join(', ')}, ?, ?, ?)`,
     [...INSPECTION_INVENTORY_TEXT_FIELDS.map((field) => physicalValues[field] || ''), JSON.stringify(customFields), now, now]
   );
-  return Number(result.insertId || 0);
+  return { inventoryId: Number(result.insertId || 0), created: true };
 };
 
-// 完成回收检测：在同一事务中创建待审核商品和库存记录，防止两边数据不一致。
+// 完成回收检测：按用户选择独立写入库存或商品管理。
 const completeAdminRecycleSubmissionInspection = async (id, payload = {}, adminId = null) => {
   const submissionId = Number(id || 0);
   if (!submissionId) return null;
@@ -482,7 +512,34 @@ const completeAdminRecycleSubmissionInspection = async (id, payload = {}, adminI
     }
     const current = mapSubmissionRow(currentRow);
     if (current.userStatus === 'cancelled') throw createHttpError(400, '用户已取消的回收单不能进行检测');
-    if (current.publishedProductId) throw createHttpError(400, '该回收单已经完成检测，不能重复提交');
+    const action = normalizeText(payload.action, 'inventory');
+    if (!['inventory', 'product'].includes(action)) throw createHttpError(400, '无效的检测处理方式');
+
+    if (action === 'inventory') {
+      const inventoryResult = await upsertInspectedInventory(connection, payload.inventoryValues, current, Date.now());
+      const now = Date.now();
+      await connection.execute(
+        `UPDATE recycle_orders
+         SET status = 'approved', reviewed_by = ?, reviewed_at = ?, updated_at = ?
+         WHERE id = ?`,
+        [adminId ? Number(adminId || 0) : null, now, now, submissionId]
+      );
+      const nextRow = await getSubmissionRowById(connection, submissionId);
+      const next = nextRow ? mapSubmissionRow(nextRow) : null;
+      await createReviewRecord(connection, {
+        submissionId,
+        action: inventoryResult.created ? 'inventory_create' : 'inventory_update',
+        reviewNote: inventoryResult.created ? '检测完成，已加入库存管理' : '检测信息已更新到原库存记录',
+        beforeSnapshot: current,
+        afterSnapshot: next,
+        adminId,
+        publishedProductId: next?.publishedProductId || null,
+      });
+      await connection.commit();
+      return { submission: next, inventoryId: inventoryResult.inventoryId, inventoryUpdated: !inventoryResult.created };
+    }
+
+    if (current.publishedProductId) throw createHttpError(400, '该回收单已经添加到商品管理，不能重复添加');
 
     const categoryRow = await getSaleCategoryRow(connection, payload.categoryId, current.categoryKey);
     if (!categoryRow) throw createHttpError(400, '未找到可用的销售类目');
@@ -601,7 +658,6 @@ const completeAdminRecycleSubmissionInspection = async (id, payload = {}, adminI
       );
     }
 
-    const inventoryId = await createInspectedInventory(connection, payload.inventoryValues, current, now);
     await connection.execute(
       `UPDATE recycle_orders
        SET published_product_id = ?, product_snapshot_json = ?, status = 'approved', reviewed_by = ?, reviewed_at = ?, updated_at = ?
@@ -621,7 +677,7 @@ const completeAdminRecycleSubmissionInspection = async (id, payload = {}, adminI
     await createReviewRecord(connection, {
       submissionId,
       action: 'inspection',
-      reviewNote: '检测完成，已创建待审核商品和库存记录',
+      reviewNote: '检测完成，已添加到商品管理',
       beforeSnapshot: current,
       afterSnapshot: next,
       adminId,
@@ -629,7 +685,7 @@ const completeAdminRecycleSubmissionInspection = async (id, payload = {}, adminI
     });
     await connection.commit();
     await exportProductCatalogSnapshot();
-    return { submission: next, product: await getAdminGoodsById(nextProductId), inventoryId };
+    return { submission: next, product: await getAdminGoodsById(nextProductId) };
   } catch (error) {
     await connection.rollback();
     throw error;
@@ -699,6 +755,23 @@ const listAdminRecycleSubmissions = async ({ page = 1, title = '', status = '', 
   );
 
   const submissionList = rows.map(mapSubmissionRow);
+  const orderNos = submissionList.map((item) => normalizeText(item.orderNo)).filter(Boolean);
+  const inventoryMap = new Map();
+  if (orderNos.length) {
+    const placeholders = orderNos.map(() => '?').join(', ');
+    const [inventoryRows] = await getPool().execute(
+      `SELECT * FROM inventory_management WHERE recycle_id IN (${placeholders}) ORDER BY id DESC`,
+      orderNos
+    );
+    inventoryRows.forEach((row) => {
+      const orderNo = normalizeText(row.recycle_id);
+      if (!orderNo || inventoryMap.has(orderNo)) return;
+      inventoryMap.set(orderNo, {
+        inventoryId: Number(row.id || 0),
+        inventoryValues: mapInspectionInventoryValues(row),
+      });
+    });
+  }
   const latestSettlements = await listLatestRecycleSettlementsByOrderIds(submissionList.map((item) => item.id));
   const settlementMap = new Map(latestSettlements.map((item) => [Number(item.recycleOrderId || 0), item]));
 
@@ -706,6 +779,7 @@ const listAdminRecycleSubmissions = async ({ page = 1, title = '', status = '', 
     totalCount: Number(countRows[0]?.totalCount || 0),
     list: submissionList.map((item) => ({
       ...item,
+      ...(inventoryMap.get(normalizeText(item.orderNo)) || { inventoryId: null, inventoryValues: {} }),
       settlement: settlementMap.get(Number(item.id || 0)) || null,
     })),
   };

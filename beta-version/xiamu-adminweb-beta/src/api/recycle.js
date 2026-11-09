@@ -122,7 +122,7 @@ export function publishRecycleSubmission(id, data) {
     return axios.post(`/admin/recycle/submissions/${id}/publish`, data)
 }
 
-// 提交回收检测结果，并同步创建待审核商品与库存记录。
+// 提交回收检测结果，按 action 独立加入库存或添加到商品管理。
 export function completeRecycleSubmissionInspection(id, data) {
     return axios.post(`/admin/recycle/submissions/${id}/inspection`, data)
 }

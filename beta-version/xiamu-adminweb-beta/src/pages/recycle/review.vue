@@ -8,7 +8,7 @@
                 <div>
                     <h2 class="text-lg font-semibold text-gray-800">回收审核</h2>
                     <p class="mt-1 text-sm text-gray-500">
-                        这里统一审核顾客提交的回收信息。先在“进行审核”中标记信息有误或信息无误并保存，再对信息无误的商品进行检测。
+                        这里统一检测顾客提交的回收商品，可在同一页面核对用户记录并登记商品信息。
                     </p>
                 </div>
             </div>
@@ -181,8 +181,7 @@
                         <el-button v-if="canUpdateRecycleSubmissionInfo" @click="handleOpenInfoEditor(currentViewRow)">修改信息</el-button>
                         <el-button v-if="canEditReport" @click="handleOpenReport(currentViewRow)">编辑报告</el-button>
                         <el-button @click="handleOpenReviews(currentViewRow)">审核记录</el-button>
-                        <el-button v-if="canReviewSubmission" type="primary" @click="handleOpenIncorrect(currentViewRow)">进行审核</el-button>
-                        <el-button v-if="canPublishSubmission" type="success" @click="handleOpenInspection(currentViewRow)">进行检测</el-button>
+                        <el-button v-if="canReviewSubmission || canPublishSubmission" type="success" @click="handleOpenDetection(currentViewRow)">检测商品</el-button>
                         <el-button v-if="canSettleSubmission || canManualAlipaySettleSubmission" type="warning" @click="handleOpenSettlement(currentViewRow)">是否打款</el-button>
                     </div>
                 </section>
@@ -218,8 +217,20 @@
             </template>
         </el-dialog>
 
-        <el-dialog v-model="reviewVisible" title="进行审核" width="min(860px, 94vw)" :close-on-click-modal="!reviewSubmitting">
-            <el-form ref="incorrectFormRef" :model="incorrectForm" :rules="incorrectRules" label-width="120px">
+        <el-dialog
+            v-model="inspectionVisible"
+            title="检测商品"
+            width="min(1440px, 96vw)"
+            destroy-on-close
+            :close-on-click-modal="!detectionSubmitting"
+            :close-on-press-escape="!detectionSubmitting"
+            :show-close="!detectionSubmitting"
+        >
+            <div v-if="inspectionCurrentRow" class="detection-layout">
+            <section class="detection-panel">
+                <div class="detection-panel__title">用户填写记录</div>
+                <div class="detection-panel__scroll">
+                <el-form ref="incorrectFormRef" :model="incorrectForm" :rules="incorrectRules" label-width="110px">
                 <el-form-item label="商品名称" prop="title">
                     <el-input :model-value="incorrectForm.title" readonly></el-input>
                 </el-form-item>
@@ -271,26 +282,17 @@
                 <el-form-item label="打回原因" prop="reviewNote">
                     <el-input v-model="incorrectForm.reviewNote" type="textarea" :rows="3" placeholder="请说明需要用户修改或补充的信息"></el-input>
                 </el-form-item>
-            </el-form>
-            <template #footer>
-                <el-button :type="reviewDecision === 'needs_fix' ? 'danger' : 'default'" @click="setReviewDecision('needs_fix')">信息有错</el-button>
-                <el-button :type="reviewDecision === 'approved' ? 'success' : 'default'" @click="setReviewDecision('approved')">信息无误</el-button>
-                <el-button :disabled="reviewSubmitting" @click="reviewVisible = false">取消</el-button>
-                <el-button type="primary" :loading="reviewSubmitting" :disabled="reviewDecision !== 'approved'" @click="submitIncorrectForm('approved')">保存</el-button>
-                <el-button type="danger" :loading="reviewSubmitting" :disabled="reviewDecision !== 'needs_fix'" @click="submitIncorrectForm('needs_fix')">打回</el-button>
-            </template>
-        </el-dialog>
-
-        <el-dialog
-            v-model="inspectionVisible"
-            title="进行检测"
-            width="min(900px, 92vw)"
-            destroy-on-close
-            :close-on-click-modal="!inspectionSubmitting"
-            :close-on-press-escape="!inspectionSubmitting"
-            :show-close="!inspectionSubmitting"
-        >
-            <div v-if="inspectionCurrentRow" class="inspection-dialog-content">
+                </el-form>
+                <div class="detection-review-actions">
+                    <el-button :disabled="detectionSubmitting" :type="reviewDecision === 'needs_fix' ? 'danger' : 'default'" @click="setReviewDecision('needs_fix')">信息有错</el-button>
+                    <el-button :disabled="detectionSubmitting" :type="reviewDecision === 'approved' ? 'success' : 'default'" @click="setReviewDecision('approved')">信息无误</el-button>
+                    <el-button v-if="canReviewSubmission" type="primary" :loading="reviewSubmitting" :disabled="!reviewDecision" @click="submitIncorrectForm(reviewDecision)">保存审核结果</el-button>
+                </div>
+                </div>
+            </section>
+            <section class="detection-panel">
+                <div class="detection-panel__title">登记产品信息</div>
+                <div class="detection-panel__scroll">
                 <el-form label-position="top" class="inspection-detail-form">
                     <el-form-item v-for="column in inspectionColumns" :key="column.key" :label="column.label">
                         <el-select
@@ -320,10 +322,15 @@
                         />
                     </el-form-item>
                 </el-form>
+                </div>
+            </section>
             </div>
             <template #footer>
-                <el-button :disabled="inspectionSubmitting" @click="inspectionVisible = false">取消</el-button>
-                <el-button type="primary" :loading="inspectionSubmitting" @click="submitInspection">检测完成</el-button>
+                <el-button :disabled="detectionSubmitting" @click="inspectionVisible = false">取消</el-button>
+                <el-button v-if="canPublishSubmission" type="primary" :loading="inspectionSubmitting && inspectionAction === 'inventory'" :disabled="detectionSubmitting" @click="submitInspection('inventory')">加入库存</el-button>
+                <el-button v-if="canPublishSubmission" type="success" :loading="inspectionSubmitting && inspectionAction === 'product'" :disabled="detectionSubmitting || Boolean(inspectionCurrentRow?.publishedProductId)" @click="submitInspection('product')">
+                    {{ inspectionCurrentRow?.publishedProductId ? '已添加到商品管理' : '商品出售' }}
+                </el-button>
             </template>
         </el-dialog>
 
@@ -469,7 +476,7 @@ const statusOptions = [
     { label: '用户申请拿回', value: 'user_take_back_requested' },
     { label: '用户接受报价', value: 'user_accepted_quote' },
     { label: '用户已取消', value: 'user_cancelled' },
-    { label: '审核中', value: 'submitted' },
+    { label: '检测中', value: 'submitted' },
     { label: '已打回', value: 'needs_fix' },
     { label: '已通过', value: 'approved' },
 ]
@@ -494,16 +501,17 @@ const currentViewRow = ref(null)
 const recordEditorVisible = ref(false)
 const recordEditorMode = ref('create')
 const recordEditorSubmitting = ref(false)
-const reviewVisible = ref(false)
 const reviewSubmitting = ref(false)
 const inspectionVisible = ref(false)
 const inspectionSubmitting = ref(false)
+const inspectionAction = ref('')
 const inspectionColumns = ref([])
 const inspectionCalculations = ref([])
 const inspectionCurrentRow = ref(null)
 const inspectionValues = reactive({})
 const currentSubmissionId = ref(0)
 const reviewDecision = ref('')
+const detectionSubmitting = computed(() => reviewSubmitting.value || inspectionSubmitting.value)
 
 const reviewsVisible = ref(false)
 const reviewList = ref([])
@@ -640,6 +648,9 @@ const getReviewActionLabel = (action) => {
     if (action === 'user_accepted') return '用户接受最终报价'
     if (action === 'user_take_back') return '用户选择拿回产品'
     if (action === 'user_cancelled') return '用户已取消寄件'
+    if (action === 'inventory_create') return '加入库存'
+    if (action === 'inventory_update') return '更新库存检测信息'
+    if (action === 'inspection') return '添加到商品管理'
     return '修改记录'
 }
 
@@ -674,7 +685,7 @@ const getCreateSettlementBlockedReason = (row) => {
     }
 
     if (!settlementReadyStatuses.includes(String(row.status || ''))) {
-        return '请先在“进行审核”中标记为信息无误并保存，或完成“进行检测”后再确认允许领取'
+        return '请先在“检测商品”中标记为信息无误并保存，再确认允许领取'
     }
 
     if (Number(row.estimateFinalPrice || 0) <= 0) {
@@ -704,7 +715,7 @@ const getCreateSettlementBlockedReason = (row) => {
 const getAlipaySettlementBlockedReason = (row) => {
     if (!row) return '未找到回收单'
     if (row.userStatus === 'cancelled') return '用户已取消该回收单，不能确认打款'
-    if (!settlementReadyStatuses.includes(String(row.status || ''))) return '请先在“进行审核”中标记为信息无误并保存，或完成“进行检测”后再确认打款'
+    if (!settlementReadyStatuses.includes(String(row.status || ''))) return '请先在“检测商品”中标记为信息无误并保存，再确认打款'
     if (Number(row.estimateFinalPrice || 0) <= 0) return '当前结款金额必须大于 0，请先填写最终估价'
     if (String(row.settlement?.state || '').toUpperCase() === 'SUCCESS') return '该回收单已打款完成，无需重复确认'
     return ''
@@ -864,8 +875,7 @@ const fillIncorrectForm = (row) => {
     incorrectForm.estimateBasePrice = Number(row.estimateBasePrice || 0)
     incorrectForm.estimateFinalPrice = Number(row.estimateFinalPrice || 0)
     incorrectForm.reviewNote = row.reviewNote || ''
-    // 每次进入审核都要求先明确选择“信息有错”或“信息无误”，避免误提交上一次状态。
-    reviewDecision.value = ''
+    reviewDecision.value = ['approved', 'published', 'reviewed'].includes(String(row.status || '')) ? 'approved' : ''
     incorrectFormRef.value && incorrectFormRef.value.clearValidate()
 }
 
@@ -916,11 +926,12 @@ const setInspectionValue = (column, value) => {
 
 const fillInspectionValues = (row) => {
     Object.keys(inspectionValues).forEach((key) => delete inspectionValues[key])
+    const savedValues = row?.inventoryValues && typeof row.inventoryValues === 'object' ? row.inventoryValues : {}
     inspectionColumns.value.forEach((column) => {
         const key = String(column.key || '')
         const imageKey = inspectionImageValueKey(column)
-        inspectionValues[key] = ''
-        if (isInspectionImageColumn(column)) inspectionValues[imageKey] = []
+        inspectionValues[key] = savedValues[key] ?? ''
+        if (isInspectionImageColumn(column)) inspectionValues[imageKey] = Array.isArray(savedValues[imageKey]) ? [...savedValues[imageKey]] : []
         if (key === 'recycle_id' || String(column.label || '').includes('回收订单编号') || String(column.label || '').includes('回收ID')) {
             inspectionValues[key] = String(row.orderNo || '')
         } else if (key === 'sf_express_number') {
@@ -952,22 +963,14 @@ const setReviewDecision = (value) => {
     incorrectFormRef.value && incorrectFormRef.value.validateField('reviewNote', () => {})
 }
 
-const handleOpenIncorrect = (row) => {
-    if (row.status === 'published' || row.publishedProductId) {
-        toast('已完成检测的商品不能再次进行审核保存', 'warning')
-        return
-    }
+const handleOpenDetection = async (row) => {
     if (row.userStatus === 'cancelled') {
-        toast('用户已取消的回收单不能继续审核', 'warning')
+        toast('用户已取消的回收单不能继续检测', 'warning')
         return
     }
     currentSubmissionId.value = row.id
-    fillIncorrectForm(row)
-    reviewVisible.value = true
-}
-
-const handleOpenInspection = async (row) => {
     inspectionCurrentRow.value = { ...row }
+    fillIncorrectForm(row)
     try {
         await reloadInspectionConfiguration()
         fillInspectionValues(row)
@@ -1215,7 +1218,7 @@ const submitIncorrectForm = (decision = reviewDecision.value) => {
             .then((data) => {
                 toast('审核标记已保存')
                 syncCurrentViewRow(data)
-                reviewVisible.value = false
+                inspectionCurrentRow.value = { ...(inspectionCurrentRow.value || {}), ...(data || {}) }
                 getData(currentPage.value)
             })
             .finally(() => {
@@ -1224,28 +1227,67 @@ const submitIncorrectForm = (decision = reviewDecision.value) => {
     })
 }
 
-const submitInspection = () => {
+const submitInspection = (action) => {
     const submissionId = Number(inspectionCurrentRow.value?.id || 0)
     if (!submissionId) {
         toast('未找到回收单', 'warning')
         return
     }
 
+    if (reviewDecision.value !== 'approved') {
+        toast('请先将用户填写记录标记为“信息无误”', 'warning')
+        return
+    }
+    if (action === 'product' && inspectionCurrentRow.value?.publishedProductId) {
+        toast('该回收商品已经添加到商品管理', 'warning')
+        return
+    }
+
     inspectionSubmitting.value = true
-    completeRecycleSubmissionInspection(submissionId, {
-        inventoryValues: inspectionValues,
-    })
+    inspectionAction.value = action
+    const ensureApproved = ['approved', 'published', 'reviewed'].includes(String(inspectionCurrentRow.value?.status || ''))
+        ? Promise.resolve(inspectionCurrentRow.value)
+        : reviewRecycleSubmission(submissionId, {
+            title: incorrectForm.title,
+            categoryKey: incorrectForm.categoryKey,
+            coverLabel: incorrectForm.coverLabel,
+            coverTheme: incorrectForm.coverTheme,
+            accountNumber: incorrectForm.accountNumber,
+            realName: incorrectForm.realName,
+            optionSummary: incorrectForm.optionSummary,
+            selectedDeviceOptionValues: incorrectForm.selectedDeviceOptionValues,
+            selectedDeviceOptionTexts: incorrectForm.selectedDeviceOptionTexts,
+            submissionImages: incorrectForm.submissionImages,
+            note: incorrectForm.note,
+            estimateBasePrice: incorrectForm.estimateBasePrice,
+            estimateFinalPrice: incorrectForm.estimateFinalPrice,
+            status: 'approved',
+            reviewNote: incorrectForm.reviewNote,
+        })
+
+    ensureApproved
+        .then((approvedRow) => {
+            inspectionCurrentRow.value = { ...(inspectionCurrentRow.value || {}), ...(approvedRow || {}) }
+            return completeRecycleSubmissionInspection(submissionId, {
+                action,
+                inventoryValues: inspectionValues,
+            })
+        })
         .then((result) => {
-            toast('检测完成，商品已进入待审核和库存管理')
-            inspectionVisible.value = false
+            const inventoryUpdated = Boolean(result?.inventoryUpdated)
+            toast(action === 'inventory'
+                ? (inventoryUpdated ? '库存检测信息已更新' : '商品已加入库存管理')
+                : '商品已添加到商品管理')
             window.dispatchEvent(new CustomEvent('inventory-management-updated', {
-                detail: { action: 'inspection-create', source: 'recycle-inspection' },
+                detail: { action: action === 'inventory' ? (inventoryUpdated ? 'inspection-update' : 'inspection-create') : 'product-create', source: 'recycle-inspection' },
             }))
             syncCurrentViewRow(result?.submission)
+            inspectionCurrentRow.value = { ...(inspectionCurrentRow.value || {}), ...(result?.submission || {}) }
             getData(currentPage.value)
         })
         .finally(() => {
             inspectionSubmitting.value = false
+            inspectionAction.value = ''
         })
 }
 
@@ -1282,14 +1324,56 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.inspection-dialog-content {
+.detection-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 16px;
+    height: min(68vh, 760px);
+    min-height: 440px;
+}
+
+.detection-panel {
+    display: flex;
+    min-width: 0;
     min-height: 0;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.detection-panel__title {
+    flex-shrink: 0;
+    padding: 12px 16px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f8fafc;
+    color: #1f2937;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.detection-panel__scroll {
+    min-height: 0;
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+}
+
+.detection-review-actions {
+    position: sticky;
+    bottom: -16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 8px -16px -16px;
+    padding: 12px 16px;
+    border-top: 1px solid #e5e7eb;
+    background: #fff;
 }
 
 .inspection-detail-form {
-    max-height: 65vh;
-    overflow-y: auto;
-    padding-right: 8px;
+    padding-right: 4px;
 }
 
 .recycle-view-content {
@@ -1464,5 +1548,18 @@ onBeforeUnmount(() => {
     font-size: 14px;
     font-weight: 600;
     line-height: 1.4;
+}
+
+@media (max-width: 900px) {
+    .detection-layout {
+        grid-template-columns: 1fr;
+        height: auto;
+        max-height: 72vh;
+        overflow-y: auto;
+    }
+
+    .detection-panel {
+        min-height: 420px;
+    }
 }
 </style>
