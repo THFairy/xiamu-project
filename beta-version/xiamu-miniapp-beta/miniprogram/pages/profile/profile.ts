@@ -53,6 +53,7 @@ interface ProfileData {
   statusBarHeight: number
   profile: UserProfile
   returnUrl: string
+  avatarChoosing: boolean
 }
 
 type AvatarChooseEvent = WechatMiniprogram.CustomEvent<{ avatarUrl?: string }>
@@ -183,24 +184,31 @@ const loginWithWechatCode = (): Promise<string> => {
 }
 
 interface ProfilePage extends BackTapGuard, NavigationTapGuard {
+  avatarChooseTimer?: number
+  avatarChoosingLock?: boolean
   onLoad(options: { from?: string }): void
+  onUnload(): void
   navigateBack(): void
   onShow(): void
   restoreProfile(): void
   syncProfileFromServer(): Promise<void>
   persistProfile(nextProfile: Partial<UserProfile>): void
   syncProfileToServer(nextProfile: Partial<UserProfile>): Promise<void>
+  onAvatarPickerTap(): void
   onChooseAvatar(event: AvatarChooseEvent): void
+  resetAvatarChoosing(): void
   onNicknameInput(event: NicknameInputEvent): string | void
   onNicknameBlur(event: NicknameBlurEvent): void
   onAddressTap(): void
 }
 
 Page<ProfileData, ProfilePage>({
+  avatarChoosingLock: false,
   data: {
     statusBarHeight: 20,
     profile: createDefaultProfile(),
     returnUrl: '/pages/mine/mine',
+    avatarChoosing: false,
   },
 
   onLoad(options) {
@@ -211,6 +219,13 @@ Page<ProfileData, ProfilePage>({
         : '/pages/mine/mine',
     })
     this.restoreProfile()
+  },
+
+  onUnload() {
+    if (this.avatarChooseTimer) {
+      clearTimeout(this.avatarChooseTimer)
+      this.avatarChooseTimer = 0
+    }
   },
 
   navigateBack() {
@@ -295,7 +310,25 @@ Page<ProfileData, ProfilePage>({
     }
   },
 
+  onAvatarPickerTap() {
+    if (this.avatarChoosingLock) {
+      return
+    }
+
+    this.avatarChoosingLock = true
+    this.setData({ avatarChoosing: true })
+    if (this.avatarChooseTimer) {
+      clearTimeout(this.avatarChooseTimer)
+    }
+    // 微信取消头像选择时不会回调 chooseavatar，短暂节流后自动恢复按钮。
+    this.avatarChooseTimer = setTimeout(() => {
+      this.avatarChooseTimer = 0
+      this.resetAvatarChoosing()
+    }, 1200) as unknown as number
+  },
+
   onChooseAvatar(event) {
+    this.resetAvatarChoosing()
     const avatarUrl = String(event.detail?.avatarUrl || '').trim()
     if (!avatarUrl) {
       return
@@ -380,6 +413,17 @@ Page<ProfileData, ProfilePage>({
       title: '已更新',
       icon: 'success',
     })
+  },
+
+  resetAvatarChoosing() {
+    this.avatarChoosingLock = false
+    if (this.avatarChooseTimer) {
+      clearTimeout(this.avatarChooseTimer)
+      this.avatarChooseTimer = 0
+    }
+    if (this.data.avatarChoosing) {
+      this.setData({ avatarChoosing: false })
+    }
   },
 
   onNicknameInput(event) {

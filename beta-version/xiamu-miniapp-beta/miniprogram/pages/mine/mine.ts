@@ -102,6 +102,7 @@ interface MineData {
   loginButtonText: string
   showWechatProfileAuth: boolean
   wechatProfileSaving: boolean
+  wechatAvatarChoosing: boolean
   draftProfile: DraftProfile
   userProfile: UserProfile
   orderMenus: OrderMenuItem[]
@@ -254,6 +255,8 @@ const clearLocalProfile = (): void => {
 interface MinePage extends NavigationTapGuard {
   tabTransitionTimer?: number
   wechatProfilePrompted?: boolean
+  wechatAvatarChooseTimer?: number
+  wechatAvatarChoosingLock?: boolean
   onLoad(options: GuardOptions): void
   onReady(): void
   onShow(): void
@@ -267,7 +270,9 @@ interface MinePage extends NavigationTapGuard {
   syncNotices(): Promise<void>
   onWechatLogin(event: WechatPhoneEvent): void
   openWechatProfileAuthorization(profile: Partial<UserProfile>): void
+  onWechatAvatarPickerTap(): void
   onWechatAvatarChoose(event: WechatAvatarEvent): void
+  resetWechatAvatarChoosing(): void
   onWechatNicknameInput(event: WechatNicknameEvent): string
   onWechatProfileAuthCancel(): void
   onWechatProfileAuthConfirm(): void
@@ -290,6 +295,7 @@ interface MinePage extends NavigationTapGuard {
 
 Page<MineData, MinePage>({
   wechatProfilePrompted: false,
+  wechatAvatarChoosingLock: false,
   data: {
     currentTab: 'mine',
     pageTransitionClass: '',
@@ -301,6 +307,7 @@ Page<MineData, MinePage>({
     loginButtonText: '微信授权登录',
     showWechatProfileAuth: false,
     wechatProfileSaving: false,
+    wechatAvatarChoosing: false,
     draftProfile: {
       avatarUrl: DEFAULT_AVATAR_URL,
       nickname: '',
@@ -353,6 +360,10 @@ Page<MineData, MinePage>({
 
   onUnload() {
     clearTabTransitionTimer(this)
+    if (this.wechatAvatarChooseTimer) {
+      clearTimeout(this.wechatAvatarChooseTimer)
+      this.wechatAvatarChooseTimer = 0
+    }
   },
 
   onShow() {
@@ -601,12 +612,31 @@ Page<MineData, MinePage>({
     this.setData({
       showWechatProfileAuth: true,
       wechatProfileSaving: false,
+      wechatAvatarChoosing: false,
       'draftProfile.avatarUrl': isDefaultAvatarUrl(avatarUrl) ? DEFAULT_AVATAR_URL : (avatarUrl || DEFAULT_AVATAR_URL),
       'draftProfile.nickname': String(profile.nickname || '').trim(),
     })
   },
 
+  onWechatAvatarPickerTap() {
+    if (this.wechatAvatarChoosingLock) {
+      return
+    }
+
+    this.wechatAvatarChoosingLock = true
+    this.setData({ wechatAvatarChoosing: true })
+    if (this.wechatAvatarChooseTimer) {
+      clearTimeout(this.wechatAvatarChooseTimer)
+    }
+    // 微信取消头像选择时不会回调 chooseavatar，短暂节流后自动恢复按钮。
+    this.wechatAvatarChooseTimer = setTimeout(() => {
+      this.wechatAvatarChooseTimer = 0
+      this.resetWechatAvatarChoosing()
+    }, 1200) as unknown as number
+  },
+
   onWechatAvatarChoose(event) {
+    this.resetWechatAvatarChoosing()
     const avatarUrl = String(event.detail?.avatarUrl || '').trim()
     if (!avatarUrl) {
       return
@@ -615,6 +645,17 @@ Page<MineData, MinePage>({
     this.setData({
       'draftProfile.avatarUrl': avatarUrl,
     })
+  },
+
+  resetWechatAvatarChoosing() {
+    this.wechatAvatarChoosingLock = false
+    if (this.wechatAvatarChooseTimer) {
+      clearTimeout(this.wechatAvatarChooseTimer)
+      this.wechatAvatarChooseTimer = 0
+    }
+    if (this.data.wechatAvatarChoosing) {
+      this.setData({ wechatAvatarChoosing: false })
+    }
   },
 
   onWechatNicknameInput(event) {
@@ -632,6 +673,7 @@ Page<MineData, MinePage>({
 
     this.setData({
       showWechatProfileAuth: false,
+      wechatAvatarChoosing: false,
     })
     wx.showToast({
       title: '可在个人信息中继续完善',
