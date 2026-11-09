@@ -1,0 +1,220 @@
+<view class="page">
+  <view wx:if="{{isTabLoading}}" class="route-loading">
+    <view class="route-loading-spinner"></view>
+    <text class="route-loading-text">正在加载页面</text>
+  </view>
+
+  <view wx:elif="{{!isContentReady}}" class="page-loading-blank"></view>
+
+  <view wx:else class="page-shell {{pageTransitionClass}}">
+    <scroll-view
+      class="page-scroll"
+      scroll-y
+      enhanced
+      show-scrollbar="{{false}}"
+      lower-threshold="120"
+      bindscrolltolower="onPageScrollToLower"
+    >
+      <view class="hero">
+        <view class="status-holder" style="height: {{statusBarHeight}}px;"></view>
+
+        <view class="top-bar">
+          <view class="brand">
+            <image class="brand-logo" src="/pages/images/index-images/logo.jpg" mode="aspectFill"></image>
+            <view class="brand-copy">
+              <text class="brand-title">回收平台</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="search-box">
+          <image class="search-icon-image" src="/pages/images/index-images/搜索.jpg" mode="aspectFit"></image>
+          <input
+            class="search-input"
+            type="text"
+            confirm-type="search"
+            placeholder="请输入搜索关键词"
+            value="{{searchKeyword}}"
+            bindinput="onSearchInput"
+            bindconfirm="onSearchConfirm"
+          />
+          <image wx:if="{{searchKeyword}}" class="search-clear" src="/pages/images/index-images/关闭.png" mode="aspectFit" bindtap="onSearchClear"></image>
+        </view>
+
+        <block wx:if="{{!isSearching}}">
+          <swiper
+            class="banner-swiper"
+            autoplay
+            circular
+            interval="5000"
+            duration="400"
+            indicator-dots
+            indicator-color="rgba(255,255,255,0.5)"
+            indicator-active-color="#ffffff"
+          >
+            <block wx:for="{{banners}}" wx:key="id">
+              <swiper-item>
+                <view
+                  class="banner-card banner-{{index % 3}}"
+                  bindtap="onBannerTap"
+                  data-page-id="{{item.targetPageId}}"
+                  data-content-enabled="{{item.contentEnabled}}"
+                >
+                  <image
+                    wx:if="{{item.image}}"
+                    class="banner-image"
+                    src="{{item.image}}"
+                    mode="aspectFill"
+                  ></image>
+                  <view class="banner-copy">
+                    <text class="banner-title">{{item.title}}</text>
+                    <text class="banner-desc">{{item.desc}}</text>
+                  </view>
+                  <view wx:if="{{!item.image}}" class="banner-decor">
+                    <view class="decor-circle decor-a"></view>
+                    <view class="decor-circle decor-b"></view>
+                  </view>
+                </view>
+              </swiper-item>
+            </block>
+          </swiper>
+        </block>
+      </view>
+
+      <block wx:if="{{isSearching}}">
+        <view class="section search-section">
+          <view class="section-head search-head">
+            <text class="section-title">搜索结果</text>
+            <text class="search-count">共 {{searchResultCount}} 件</text>
+          </view>
+
+          <view wx:if="{{searchResults.length}}" class="product-list">
+            <block wx:for="{{searchResults}}" wx:key="id">
+              <view class="product-item" data-id="{{item.id}}" bindtap="onProductTap">
+                <view class="product-cover">
+                  <image wx:if="{{item.coverImage}}" class="product-cover-image" src="{{item.coverImage}}" mode="aspectFill"></image>
+                  <view wx:else class="product-cover-fallback platform-{{item.platform}}">
+                    <text class="platform-label">{{item.platform}}</text>
+                    <text class="cover-title">{{item.coverTitle}}</text>
+                  </view>
+                </view>
+
+                <view class="product-info">
+                  <view class="product-title-row">
+                    <text class="product-title">{{item.title}}</text>
+                    <text wx:if="{{item.score}}" class="product-score">{{item.score}}</text>
+                  </view>
+                  <text class="product-subtitle">{{item.subtitle}}</text>
+                  <view class="product-bottom">
+                    <text class="product-price">{{item.price}}</text>
+                    <text wx:if="{{item.tag}}" class="product-tag">{{item.tag}}</text>
+                  </view>
+                </view>
+              </view>
+            </block>
+          </view>
+
+          <view wx:else class="search-empty">
+            <text class="search-empty-title">没有找到相关商品</text>
+            <text class="search-empty-desc">换个关键词试试，比如 Switch、PS5、Steam。</text>
+          </view>
+        </view>
+      </block>
+
+      <block wx:else>
+        <block wx:for="{{homeSections}}" wx:key="id" wx:for-item="section">
+          <view class="home-section-panel">
+            <view class="section-head">
+              <image class="section-dot" src="/pages/images/index-images/dot.png" mode="aspectFit"></image>
+              <text class="section-title">{{section.title}}</text>
+            </view>
+
+            <view class="category-grid">
+              <block wx:for="{{section.items}}" wx:key="id" wx:for-item="entry">
+                <view
+                  class="category-card category-{{entry.theme}} {{entry.centered ? 'category-card-centered' : ''}}"
+                  data-target="{{entry.target}}"
+                  data-category-section-key="{{entry.categorySectionKey}}"
+                  data-category-name="{{entry.name}}"
+                  bindtap="onCategoryTap"
+                >
+                  <view class="category-cover {{entry.centered ? 'category-cover-centered' : ''}}">
+                    <view wx:if="{{entry.badge}}" class="cover-chip">{{entry.badge}}</view>
+                    <image
+                      wx:if="{{entry.coverImage}}"
+                      class="category-cover-image"
+                      src="{{entry.coverImage}}"
+                      mode="aspectFit"
+                    ></image>
+                    <view wx:else class="cover-box"></view>
+                  </view>
+                  <view class="category-main {{entry.centered ? 'category-main-centered' : ''}}">
+                    <text class="category-name">{{entry.name}}</text>
+                    <text wx:if="{{entry.count}}" class="category-count">{{entry.count}}</text>
+                    <text wx:if="{{entry.desc}}" class="category-desc">{{entry.desc}}</text>
+                  </view>
+                </view>
+              </block>
+            </view>
+          </view>
+        </block>
+
+        <view class="home-section-panel home-recommendation-panel">
+          <view class="section-head">
+            <image class="section-dot" src="/pages/images/index-images/dot.png" mode="aspectFit"></image>
+            <text class="section-title">为你推荐</text>
+          </view>
+
+          <view class="hot-product-grid">
+            <block wx:for="{{hotProducts}}" wx:key="id">
+              <view class="hot-product-item" data-id="{{item.id}}" bindtap="onProductTap">
+                <view class="hot-product-cover">
+                  <image wx:if="{{item.coverImage}}" class="hot-product-cover-image" src="{{item.coverImage}}" mode="aspectFill"></image>
+                  <view wx:else class="hot-product-cover-fallback platform-{{item.platform}}">
+                    <text class="platform-label">{{item.platform}}</text>
+                    <text class="cover-title">{{item.coverTitle}}</text>
+                  </view>
+                </view>
+
+                <view class="hot-product-info">
+                  <text class="hot-product-title">{{item.title}}</text>
+                  <text wx:if="{{item.subtitle}}" class="hot-product-subtitle">{{item.subtitle}}</text>
+                  <view class="hot-product-bottom">
+                    <text class="product-price">{{item.price}}</text>
+                    <text wx:if="{{item.tag}}" class="product-tag">{{item.tag}}</text>
+                  </view>
+                </view>
+              </view>
+            </block>
+          </view>
+
+        </view>
+
+        <view class="home-recommendation-footer">
+          <block wx:if="{{hotProducts.length}}">
+            <text wx:if="{{hotProductsReachedEnd}}" class="product-list-end">已经到最后了</text>
+            <text wx:elif="{{hotProductsLoadingMore}}" class="product-list-loading">
+              <text class="product-list-spinner"></text>
+              <text class="product-list-loading-text">正在加载页面</text>
+            </text>
+            <text wx:else class="product-list-prompt">向下滑动继续加载</text>
+          </block>
+        </view>
+      </block>
+    </scroll-view>
+
+  </view>
+  <view class="tab-bar">
+    <block wx:for="{{tabs}}" wx:key="key">
+      <view
+        class="tab-item {{currentTab === item.key ? 'tab-item-active' : ''}}"
+        data-key="{{item.key}}"
+        data-path="{{item.path}}"
+        bindtap="onTabTap"
+      >
+            <image class="tab-icon-image" src="{{currentTab === item.key ? '/pages/images/index-images/页面切换图标/回到' + item.text + '.png' : '/pages/images/index-images/页面切换图标/' + item.text + '.png'}}" mode="aspectFit"></image>
+        <text class="tab-text">{{item.text}}</text>
+      </view>
+    </block>
+  </view>
+</view>

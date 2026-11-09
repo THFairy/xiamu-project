@@ -1,0 +1,166 @@
+<!-- 用途：展示由网页后台动态配置的回收收款信息、黄色提示和商品检测项。 -->
+<view class="page">
+  <view class="fixed-header">
+    <view class="status-holder" style="height: {{statusBarHeight}}px;"></view>
+
+    <view class="nav-bar">
+      <view class="nav-left" bindtap="onBackTap">
+        <image class="nav-back navigation-back-icon" src="/pages/images/index-images/返回.png" mode="aspectFit"></image>
+      </view>
+      <text class="nav-title">{{pageTitle}}</text>
+      <view style="width: 144rpx; height: 56rpx; flex-shrink: 0;"></view>
+    </view>
+
+    <view class="product-head-card">
+      <view class="product-head-copy">
+        <text class="product-head-title">正在回收{{productTitle}}</text>
+      </view>
+      <view class="product-head-cover product-head-cover-{{coverTheme}}">
+        <image wx:if="{{coverImage}}" class="product-head-cover-image" src="{{coverImage}}" mode="aspectFill"></image>
+        <view wx:else class="product-head-cover-fallback">
+          <text class="product-head-cover-top">回收</text>
+          <text class="product-head-cover-text">{{coverLabel}}</text>
+        </view>
+      </view>
+    </view>
+
+  </view>
+
+  <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+
+    <view wx:if="{{noticeVisible && noticeLines.length}}" class="notice-bar">
+      <block wx:for="{{noticeLines}}" wx:key="index">
+        <text class="notice-line">{{item}}</text>
+      </block>
+    </view>
+
+    <view class="section-title">收款账号</view>
+    <view class="form-card">
+      <block wx:for="{{accountFields}}" wx:key="id">
+        <view wx:if="{{item.id === 1}}" class="payout-row-wrap">
+          <view class="field-row {{visiblePayoutOptions.length > 1 ? 'field-row-clickable' : ''}}" bindtap="onPayoutTap">
+            <text class="field-label">{{item.label}}</text>
+            <view class="field-value-wrap">
+              <text class="field-chip {{item.chipType === 'wechat' ? 'field-chip-wechat' : 'field-chip-alipay'}}">{{item.value}}</text>
+              <text wx:if="{{visiblePayoutOptions.length > 1}}" class="field-arrow {{payoutMenuOpen ? 'field-arrow-open' : ''}}">v</text>
+            </view>
+          </view>
+          <view wx:if="{{payoutMenuOpen && visiblePayoutOptions.length > 1}}" class="payout-dropdown">
+            <block wx:for="{{visiblePayoutOptions}}" wx:key="id">
+              <view class="payout-option" data-value="{{item.value}}" bindtap="onPayoutOptionTap">
+                <text class="payout-option-text {{selectedPayoutMethod === item.value ? 'payout-option-text-active' : ''}}">{{item.label}}</text>
+              </view>
+            </block>
+          </view>
+        </view>
+        <view wx:elif="{{item.id === 2 || item.id === 3 || item.id === 4}}" class="field-row">
+          <text class="field-label">{{item.label}}</text>
+          <view class="field-value-wrap">
+            <input
+              wx:if="{{item.id === 2}}"
+              class="field-input"
+              type="text"
+              placeholder="{{item.value}}"
+              placeholder-class="field-input-placeholder"
+              value="{{accountNumber}}"
+              bindinput="onAccountNumberInput"
+            />
+            <input
+              wx:elif="{{item.id === 3}}"
+              class="field-input"
+              type="text"
+              placeholder="{{item.value}}"
+              placeholder-class="field-input-placeholder"
+              value="{{realName}}"
+              bindinput="onRealNameInput"
+            />
+            <input
+              wx:elif="{{item.id === 4}}"
+              class="field-input"
+              type="text"
+              placeholder="{{item.value}}"
+              placeholder-class="field-input-placeholder"
+              value="{{orderRemark}}"
+              bindinput="onOrderRemarkInput"
+            />
+          </view>
+        </view>
+      </block>
+    </view>
+
+    <view class="section-title">实拍图片</view>
+    <view class="form-card photo-card">
+      <view class="photo-helper-row">
+        <text class="photo-helper-text">建议上传机器外观、屏幕、配件和问题细节，最多 9 张</text>
+        <text class="photo-count">{{submissionImages.length}} / 9</text>
+      </view>
+
+      <view class="photo-grid">
+        <block wx:for="{{submissionImages}}" wx:key="index">
+          <view class="photo-item">
+            <image class="photo-image" src="{{item}}" mode="aspectFill"></image>
+            <view class="photo-remove" data-index="{{index}}" bindtap="onRemoveImageTap">x</view>
+          </view>
+        </block>
+
+        <view wx:if="{{submissionImages.length < 9}}" class="photo-upload-card" bindtap="onChooseImagesTap">
+          <text class="photo-upload-plus">+</text>
+          <text class="photo-upload-text">上传图片</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="section-title">设备信息</view>
+    <view class="form-card option-card">
+      <block wx:for="{{deviceOptionFields}}" wx:key="id" wx:for-item="field">
+        <view class="device-option-group">
+          <view class="option-row" data-key="{{field.key}}" bindtap="onDeviceOptionTap">
+            <text class="option-label">{{field.label}}</text>
+            <view class="option-right">
+              <text wx:if="{{field.selectedText}}" class="option-selected-text">{{field.selectedText}}</text>
+              <text class="option-arrow {{activeDeviceOptionKey === field.key ? 'option-arrow-open' : ''}}">v</text>
+            </view>
+          </view>
+          <view wx:if="{{activeDeviceOptionKey === field.key}}" class="option-dropdown">
+            <block wx:for="{{field.options}}" wx:key="id" wx:for-item="option">
+              <view
+                class="option-choice {{option.imageUrls.length ? 'option-choice-with-images' : ''}}"
+                data-key="{{field.key}}"
+                data-value="{{option.value}}"
+                bindtap="onDeviceOptionValueTap"
+              >
+                <view wx:if="{{option.imageUrls.length}}" class="option-choice-images">
+                  <block wx:for="{{option.imageUrls}}" wx:key="index" wx:for-item="imageUrl">
+                    <image
+                      class="option-choice-image"
+                      src="{{imageUrl}}"
+                      mode="aspectFill"
+                      data-image-url="{{imageUrl}}"
+                      data-image-urls="{{option.imageUrls}}"
+                      catchtap="onPreviewOptionImageTap"
+                    ></image>
+                  </block>
+                </view>
+                <view class="option-choice-main">
+                  <view
+                    class="option-choice-radio {{option.selected ? 'option-choice-radio-active' : ''}}"
+                    data-key="{{field.key}}"
+                    data-value="{{option.value}}"
+                    catchtap="onDeviceOptionValueTap"
+                  ></view>
+                  <text class="option-choice-text {{option.selected ? 'option-choice-text-active' : ''}}">{{option.text}}</text>
+                </view>
+              </view>
+            </block>
+          </view>
+        </view>
+      </block>
+    </view>
+
+    <view class="bottom-space"></view>
+  </scroll-view>
+
+  <view class="footer-bar">
+    <button class="confirm-button" bindtap="onConfirmTap">确认回收</button>
+  </view>
+</view>

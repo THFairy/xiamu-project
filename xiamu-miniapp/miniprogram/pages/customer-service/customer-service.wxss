@@ -1,0 +1,12 @@
+.page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+}
+
+.loading-copy {
+  color: #666666;
+  font-size: 28rpx;
+}

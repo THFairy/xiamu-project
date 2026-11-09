@@ -1,0 +1,84 @@
+<view class="page">
+  <view class="page-shell {{pageTransitionClass}}">
+    <view class="content">
+      <view class="status-holder" style="height: {{statusBarHeight}}px;"></view>
+
+      <view class="top-bar">
+        <view class="back-button" bindtap="onBackTap">
+          <image class="back-icon navigation-back-icon" src="/pages/images/index-images/返回.png" mode="aspectFit"></image>
+        </view>
+      </view>
+
+      <scroll-view class="attitude-mode-scroll" scroll-x enhanced show-scrollbar="{{false}}">
+        <view class="attitude-mode-list">
+          <block wx:for="{{attitudeModes}}" wx:key="key">
+            <view
+              class="attitude-mode-item {{item.active ? 'attitude-mode-item-active' : ''}}"
+              data-key="{{item.key}}"
+              bindtap="onAttitudeModeTap"
+            >
+              <text class="attitude-mode-text">{{item.text}}</text>
+            </view>
+          </block>
+        </view>
+      </scroll-view>
+
+      <block wx:if="{{items.length}}">
+        <scroll-view class="cart-list" scroll-y enhanced show-scrollbar="{{false}}">
+          <block wx:for="{{items}}" wx:key="productId">
+            <view class="cart-item" data-product-id="{{item.productId}}" bindtap="onItemTap">
+              <view class="cart-cover">
+                <image wx:if="{{item.coverImage}}" class="cart-cover-image" src="{{item.coverImage}}" mode="aspectFill"></image>
+                <text wx:else class="cart-cover-text">{{item.coverTitle}}</text>
+              </view>
+              <view class="cart-copy">
+                <text class="cart-title">{{item.title}}</text>
+                <text class="cart-subtitle">{{item.subtitle}}</text>
+                <text class="cart-tag">{{attitudeLabel}}</text>
+              </view>
+              <view class="cart-price-wrap">
+                <text wx:if="{{item.price}}" class="cart-price">{{item.price}}元</text>
+                <text wx:if="{{item.platform && attitudeKey !== 'like' && attitudeKey !== 'favorite'}}" class="cart-platform">{{item.platform}}</text>
+              </view>
+              <view class="delete-button" data-product-id="{{item.productId}}" catchtap="onDeleteTap">
+                <image class="delete-icon" src="/pages/images/order-images/delete.jpg" mode="aspectFit"></image>
+              </view>
+            </view>
+          </block>
+        </scroll-view>
+      </block>
+
+      <block wx:else>
+        <view class="empty-area">
+          <view class="empty-graphic">
+            <view class="paper-back"></view>
+            <view class="paper-front">
+              <view class="paper-line line-a"></view>
+              <view class="paper-line line-b"></view>
+              <view class="paper-line line-c"></view>
+            </view>
+            <view class="graphic-star star-a">+</view>
+            <view class="graphic-star star-b">+</view>
+          </view>
+          <text class="empty-text">{{emptyText}}</text>
+        </view>
+      </block>
+
+      <view class="summary-row">
+        <text class="summary-count">共{{itemCount}}件</text>
+        <view wx:if="{{itemCount > 0}}" class="summary-actions">
+          <button class="summary-action-button clear-button" bindtap="onClearTap">清空</button>
+        </view>
+      </view>
+    </view>
+
+  </view>
+  <view class="tab-bar">
+    <block wx:for="{{tabs}}" wx:key="key">
+      <view class="tab-item {{currentTab === item.key ? 'tab-item-active' : ''}}" data-key="{{item.key}}" data-path="{{item.path}}" bindtap="onTabTap">
+        <image class="tab-icon-image" src="{{currentTab === item.key ? '/pages/images/index-images/页面切换图标/回到' + item.text + '.png' : '/pages/images/index-images/页面切换图标/' + item.text + '.png'}}" mode="aspectFit"></image>
+        <text class="tab-text">{{item.text}}</text>
+      </view>
+    </block>
+  </view>
+</view>

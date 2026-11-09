@@ -1,0 +1,59 @@
+<view class="page">
+  <view class="status-holder" style="height: {{statusBarHeight}}px;"></view>
+
+  <view class="nav-bar">
+    <view class="nav-left" bindtap="onBackTap">
+      <image class="nav-back navigation-back-icon" src="/pages/images/index-images/返回.png" mode="aspectFit"></image>
+    </view>
+    <text class="nav-title">{{pageTitle}}</text>
+    <view class="nav-right"></view>
+  </view>
+
+  <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="summary-card">
+      <view class="summary-main">
+        <text class="summary-label">回收商品</text>
+        <text class="summary-value">{{itemCount}}件</text>
+      </view>
+      <view class="summary-main">
+        <text class="summary-label">预计合计</text>
+        <text class="summary-total">{{totalPriceText}}</text>
+      </view>
+    </view>
+
+    <block wx:if="{{checkoutItems.length}}">
+      <block wx:for="{{checkoutItems}}" wx:key="addedAt">
+        <view class="item-card">
+          <view class="item-head">
+            <view class="item-cover item-cover-{{item.coverTheme}}">
+              <image wx:if="{{item.coverImage}}" class="item-cover-image" src="{{item.coverImage}}" mode="aspectFill"></image>
+              <text wx:else class="item-cover-text">{{item.coverLabel}}</text>
+            </view>
+            <view class="item-copy">
+              <text class="item-title">{{item.title}}</text>
+              <text class="item-subtitle">{{item.optionSummary || '已填写完整回收信息'}}</text>
+              <text class="item-meta">收款方式：{{item.payoutMethodLabel}} / 收款人：{{item.realName}}</text>
+            </view>
+            <view class="item-delete-button" data-added-at="{{item.addedAt}}" catchtap="onRemoveItemTap">
+              <image class="item-delete-icon" src="/pages/images/order-images/delete.jpg" mode="aspectFit"></image>
+            </view>
+          </view>
+
+          <view wx:if="{{!item.supported}}" class="unsupported-card">
+            <text class="unsupported-text">{{item.note}}</text>
+          </view>
+        </view>
+      </block>
+    </block>
+
+    <view wx:else class="empty-area">
+      <text class="empty-text">当前没有可结算的回收商品</text>
+    </view>
+
+    <view class="bottom-space"></view>
+  </scroll-view>
+
+  <view class="bottom-bar">
+    <button class="bottom-action-button bottom-action-primary" bindtap="onSubmitTap">提交</button>
+  </view>
+</view>

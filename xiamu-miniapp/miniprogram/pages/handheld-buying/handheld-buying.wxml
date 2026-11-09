@@ -1,0 +1,65 @@
+<view class="page">
+  <view class="status-holder" style="height: {{statusBarHeight}}px;"></view>
+
+  <view class="nav-bar">
+    <view class="nav-left" bindtap="onBackTap">
+      <image class="nav-back navigation-back-icon" src="/pages/images/index-images/返回.png" mode="aspectFit"></image>
+    </view>
+    <text class="nav-title">{{pageTitle}}</text>
+    <view style="width: 144rpx; height: 56rpx; flex-shrink: 0;"></view>
+  </view>
+
+  <view wx:if="{{isLoading}}" class="route-loading">
+    <view class="route-loading-spinner"></view>
+    <text class="route-loading-text">正在加载页面</text>
+  </view>
+
+  <view wx:else class="search-bar" bindtap="onSearchTap">
+    <image class="search-icon-image" src="/pages/images/index-images/搜索.jpg" mode="aspectFit"></image>
+    <text class="search-placeholder">{{searchPlaceholder}}</text>
+  </view>
+
+  <view wx:if="{{!isLoading}}" class="content-area">
+    <view class="brand-panel">
+      <block wx:for="{{brands}}" wx:key="id">
+        <view
+          class="brand-item {{item.active ? 'brand-item-active' : ''}}"
+          data-key="{{item.key}}"
+          bindtap="onBrandTap"
+        >
+          <text class="brand-text {{item.active ? 'brand-text-active' : ''}}">{{item.text}}</text>
+        </view>
+      </block>
+    </view>
+
+    <scroll-view class="product-panel" scroll-y enhanced show-scrollbar="{{false}}">
+      <block wx:if="{{visibleProducts.length}}">
+        <block wx:for="{{visibleProducts}}" wx:key="id">
+          <view class="product-item" data-id="{{item.id}}" bindtap="onProductTap">
+            <view class="product-cover product-cover-{{item.coverTheme}}">
+              <image
+                wx:if="{{item.coverImage}}"
+                class="product-cover-image"
+                src="{{item.coverImage}}"
+                mode="aspectFill"
+              ></image>
+              <text wx:else class="product-cover-label">{{item.coverLabel}}</text>
+            </view>
+
+            <view class="product-info">
+              <text class="product-title">{{item.title}}</text>
+            </view>
+
+            <view class="product-price-block">
+              <text class="product-price">{{item.price}}</text>
+            </view>
+          </view>
+        </block>
+      </block>
+
+      <view wx:else class="product-empty">
+        <text class="product-empty-text">当前分类下暂无商品</text>
+      </view>
+    </scroll-view>
+  </view>
+</view>

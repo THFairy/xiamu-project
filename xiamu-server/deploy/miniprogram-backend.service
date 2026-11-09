@@ -1,0 +1,20 @@
+# 用途：以数据保护模式运行网页端与微信小程序共用后端。
+[Unit]
+Description=Xiamu Shared Backend Service
+After=network.target mysql.service mysqld.service
+Wants=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/root/xiamu-server
+ExecStart=/usr/bin/node /root/xiamu-server/index.js
+Restart=always
+RestartSec=3
+User=root
+Environment=NODE_ENV=production
+Environment=PRESERVE_EXISTING_DATA=true
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

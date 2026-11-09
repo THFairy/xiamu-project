@@ -1,0 +1,29 @@
+<view class="page">
+  <view class="status-holder" style="height: {{statusBarHeight}}px;"></view>
+
+  <view class="nav-bar">
+    <view class="nav-left" bindtap="onBackTap">
+      <image class="nav-back navigation-back-icon" src="/pages/images/index-images/返回.png" mode="aspectFit"></image>
+    </view>
+    <text class="nav-title">{{pageTitle}}</text>
+    <view class="nav-right"></view>
+  </view>
+
+  <scroll-view class="content" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="hero-card">
+      <text class="hero-eyebrow">{{heroEyebrow}}</text>
+      <text class="hero-title">{{heroTitle}}</text>
+      <text class="hero-desc">{{heroDesc}}</text>
+    </view>
+
+    <view class="section-list">
+      <block wx:for="{{sections}}" wx:key="id">
+        <view class="section-card">
+          <text class="section-index">0{{index + 1}}</text>
+          <text class="section-title">{{item.title}}</text>
+          <text class="section-desc">{{item.desc}}</text>
+        </view>
+      </block>
+    </view>
+  </scroll-view>
+</view>

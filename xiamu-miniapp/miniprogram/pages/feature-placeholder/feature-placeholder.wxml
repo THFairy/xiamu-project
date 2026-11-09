@@ -1,0 +1,263 @@
+<view class="page">
+  <view wx:if="{{isDirectoryPage || isTutorialCategoryPage}}"></view>
+
+  <view wx:elif="{{isTutorialPage}}" class="tutorial-banner">
+    <view class="status-holder" style="height: {{statusBarHeight}}px;"></view>
+
+    <view class="tutorial-banner-bar" bindtap="onBackTap">
+      <view class="tutorial-back-hit">
+        <image class="nav-back tutorial-back navigation-back-icon navigation-back-icon-light" src="/pages/images/index-images/返回.png" mode="aspectFit"></image>
+      </view>
+      <view class="tutorial-banner-spacer"></view>
+    </view>
+
+    <view class="tutorial-banner-copy">
+      <text class="tutorial-banner-tag">轮播教程目录</text>
+      <text class="tutorial-banner-title">教程</text>
+      <text class="tutorial-banner-desc">点击查看教程分类和具体内容</text>
+    </view>
+  </view>
+
+  <view wx:else class="page-header {{isFaqPage ? 'page-header-fixed' : ''}}">
+    <view class="status-holder" style="height: {{statusBarHeight}}px;"></view>
+
+    <view class="nav-bar {{isFaqPage ? 'nav-bar-faq' : ''}}">
+      <view class="nav-left {{isFaqPage ? 'nav-left-faq' : ''}}" bindtap="onBackTap">
+        <image class="nav-back navigation-back-icon" src="/pages/images/index-images/返回.png" mode="aspectFit"></image>
+      </view>
+      <text class="nav-title">{{pageTitle}}</text>
+      <view wx:if="{{!isFaqPage}}" class="nav-right"></view>
+    </view>
+  </view>
+
+  <view wx:if="{{isLoading}}" class="route-loading">
+    <view class="route-loading-spinner"></view>
+    <text class="route-loading-text">正在加载页面</text>
+  </view>
+
+  <scroll-view wx:else class="content {{isDirectoryPage || isTutorialCategoryPage ? 'directory-content' : ''}}" scroll-y enhanced show-scrollbar="{{false}}">
+    <block wx:if="{{isTutorialCategoryPage}}">
+      <view class="directory-hero-section directory-category-page-hero">
+        <view class="status-holder" style="height: {{statusBarHeight}}px;"></view>
+        <view class="directory-nav-bar">
+          <view class="directory-nav-side" bindtap="onBackTap"><view class="directory-nav-back"></view></view>
+          <text class="directory-nav-title">{{pageTitle}}</text>
+          <view class="directory-nav-side directory-nav-side-right"></view>
+        </view>
+      </view>
+      <view class="directory-section directory-category-article-section">
+        <view wx:if="{{directoryQuestions.length}}" class="directory-question-list">
+          <block wx:for="{{directoryQuestions}}" wx:key="id">
+            <view class="directory-question-item" data-page-id="{{item.pageId}}" bindtap="onDirectoryQuestionTap">
+              <view class="directory-question-tag-wrap">
+                <image wx:if="{{item.tagImageUrl}}" class="directory-question-tag-image" src="{{item.tagImageUrl}}" mode="aspectFill"></image>
+              </view>
+              <text class="directory-question-title">{{item.question}}</text>
+              <view class="directory-question-metrics">
+                <view class="directory-question-metric">
+                  <image class="directory-question-metric-icon" src="/pages/images/index-images/how-to-play/点赞.png" mode="aspectFit"></image>
+                  <text>{{item.likeCount || 0}}</text>
+                </view>
+                <view class="directory-question-metric">
+                  <image class="directory-question-metric-icon" src="/pages/images/index-images/how-to-play/收藏.png" mode="aspectFit"></image>
+                  <text>{{item.favoriteCount || 0}}</text>
+                </view>
+              </view>
+              <image class="directory-question-arrow navigation-forward-icon" src="/pages/images/index-images/前往.png" mode="aspectFit"></image>
+            </view>
+          </block>
+        </view>
+        <view wx:else class="directory-empty directory-category-empty">
+          <text class="directory-empty-title">暂无教程文章</text>
+        </view>
+      </view>
+    </block>
+    <block wx:if="{{isDirectoryPage}}">
+      <view class="directory-hero-section">
+        <view class="status-holder" style="height: {{statusBarHeight}}px;"></view>
+
+        <view class="directory-nav-bar">
+          <view class="directory-nav-side" bindtap="onBackTap">
+            <view class="directory-nav-back"></view>
+          </view>
+          <text class="directory-nav-title">教程专区</text>
+          <view class="directory-nav-side directory-nav-side-right"></view>
+        </view>
+
+        <view wx:if="{{!directoryLoading}}" class="directory-banner">
+          <view class="search-box directory-search-box">
+            <image class="search-icon-image" src="/pages/images/index-images/搜索.jpg" mode="aspectFit"></image>
+            <input
+              class="search-input"
+              type="text"
+              confirm-type="search"
+              placeholder="请输入搜索关键词"
+              value="{{directorySearchKeyword}}"
+              bindinput="onDirectorySearchInput"
+              bindconfirm="onDirectorySearchConfirm"
+            />
+            <image wx:if="{{directorySearchKeyword}}" class="search-clear" src="/pages/images/index-images/关闭.png" mode="aspectFit" bindtap="onDirectorySearchClear"></image>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{directoryLoading}}" class="directory-loading" aria-label="正在加载页面">
+        <view class="directory-loading-spinner"></view>
+      </view>
+
+      <view wx:if="{{!directoryLoading}}" class="directory-section">
+        <view class="section-head directory-section-head">
+          <text class="section-title">问题分类</text>
+        </view>
+
+        <view class="directory-category-grid">
+          <block wx:for="{{directoryCategories}}" wx:key="id">
+            <view
+              class="directory-category-card directory-tone-{{item.tone}}"
+              data-keyword="{{item.title}}"
+              data-title="{{item.title}}"
+              data-category-id="{{item.pageId || item.id}}"
+              bindtap="onDirectoryCategoryTap"
+            >
+              <view class="directory-category-icon">
+                <image wx:if="{{item.imageUrl}}" class="directory-category-image" src="{{item.imageUrl}}" mode="aspectFill"></image>
+                <text wx:else class="directory-category-icon-text">{{item.icon}}</text>
+              </view>
+              <text class="directory-category-title">{{item.title}}</text>
+            </view>
+          </block>
+        </view>
+      </view>
+
+      <view wx:if="{{!directoryLoading && directoryQuestions.length}}" class="directory-section directory-question-section">
+        <view class="section-head directory-section-head">
+          <text class="section-title">热门问题</text>
+        </view>
+
+        <view wx:if="{{directoryHasResults}}" class="directory-question-list">
+          <block wx:for="{{directoryQuestions}}" wx:key="id">
+            <view
+              class="directory-question-item"
+              data-page-id="{{item.pageId}}"
+              data-question="{{item.question}}"
+              bindtap="onDirectoryQuestionTap"
+            >
+              <view class="directory-question-tag-wrap">
+                <image wx:if="{{item.tagImageUrl}}" class="directory-question-tag-image" src="{{item.tagImageUrl}}" mode="aspectFill"></image>
+              </view>
+              <text class="directory-question-title">{{item.question}}</text>
+              <view class="directory-question-metrics">
+                <view class="directory-question-metric">
+                  <image class="directory-question-metric-icon" src="/pages/images/index-images/how-to-play/点赞.png" mode="aspectFit"></image>
+                  <text>{{item.likeCount || 0}}</text>
+                </view>
+                <view class="directory-question-metric">
+                  <image class="directory-question-metric-icon" src="/pages/images/index-images/how-to-play/收藏.png" mode="aspectFit"></image>
+                  <text>{{item.favoriteCount || 0}}</text>
+                </view>
+              </view>
+              <image class="directory-question-arrow navigation-forward-icon" src="/pages/images/index-images/前往.png" mode="aspectFit"></image>
+            </view>
+          </block>
+        </view>
+
+        <view wx:else class="directory-empty">
+          <text class="directory-empty-title">没有找到匹配内容</text>
+          <text class="directory-empty-desc">换个关键词试试，或者在网页端修改“轮播目录”内容。</text>
+        </view>
+      </view>
+    </block>
+
+    <block wx:elif="{{isFaqPage}}">
+      <view class="faq-card faq-list-card">
+        <block wx:for="{{faqItems}}" wx:key="id">
+          <view class="faq-item" data-id="{{item.id}}" bindtap="onFaqItemTap">
+            <view class="faq-item-head">
+              <text class="faq-question">{{item.question}}</text>
+              <text class="faq-arrow {{item.expanded ? 'faq-arrow-open' : ''}}">⌄</text>
+            </view>
+            <text wx:if="{{item.expanded}}" class="faq-answer">{{item.answer}}</text>
+          </view>
+        </block>
+      </view>
+
+      <view class="faq-card faq-contact-card">
+        <text class="faq-contact-title">还有其他问题？</text>
+        <text class="faq-contact-copy">如果你的情况比较特殊，比如订单纠纷、回收验机争议或发货异常，可以直接联系客服。</text>
+        <button class="faq-contact-button" open-type="contact">联系客服</button>
+      </view>
+    </block>
+
+    <view wx:elif="{{!isTutorialCategoryPage}}" class="image-card">
+      <block wx:if="{{imageUrls.length}}">
+        <image wx:for="{{imageUrls}}" wx:key="*this" class="placeholder-image notice-image" src="{{item}}" mode="widthFix"></image>
+      </block>
+      <image wx:elif="{{imageUrl}}" class="placeholder-image" src="{{imageUrl}}" mode="widthFix"></image>
+      <view wx:elif="{{!contentHtml && !isNoticePage}}" class="placeholder-box">
+        <text class="placeholder-icon">图</text>
+        <text class="placeholder-text">{{helperText}}</text>
+      </view>
+      <view wx:if="{{isNoticePage && !imageUrls.length && !contentHtml}}" class="notice-empty">暂无更多内容</view>
+      <rich-text wx:if="{{contentHtml}}" class="content-rich-text" nodes="{{contentHtml}}"></rich-text>
+      <view wx:if="{{!isTutorialArticlePage && (endLinkProductId || endLinkCategoryKey)}}" class="content-end-link">
+        <text class="content-end-link-title">看完了，去下单</text>
+        <button class="content-end-link-button" bindtap="onEndLinkTap">{{endLinkText}}</button>
+      </view>
+
+      <view wx:if="{{isTutorialArticlePage && tutorialPageCount > 0}}" class="tutorial-page-navigation">
+        <button
+          class="tutorial-page-button tutorial-page-button-secondary"
+          disabled="{{tutorialPageIndex === 0}}"
+          bindtap="onPreviousTutorialPage"
+        >上一页</button>
+        <text class="tutorial-page-indicator">{{tutorialPageIndex + 1}} / {{tutorialPageCount}}</text>
+        <button
+          wx:if="{{tutorialPageIndex < tutorialPageCount - 1}}"
+          class="tutorial-page-button tutorial-page-button-primary"
+          bindtap="onNextTutorialPage"
+        >下一页</button>
+        <button
+          wx:elif="{{endLinkProductId || endLinkCategoryKey}}"
+          class="tutorial-page-button tutorial-page-button-primary"
+          bindtap="onTutorialEndLinkTap"
+        >{{endLinkText}}</button>
+        <button wx:else class="tutorial-page-button tutorial-page-button-disabled" disabled>已到最后一页</button>
+      </view>
+    </view>
+  </scroll-view>
+
+  <view wx:if="{{contentPageId > 1 && !isDirectoryPage && !isTutorialCategoryPage}}" class="tutorial-interaction-bar">
+    <button
+      class="tutorial-interaction-button {{tutorialLiked ? 'is-active' : ''}}"
+      hover-class="none"
+      bindtap="onTutorialLikeTap"
+    >
+      <image
+        class="tutorial-interaction-icon"
+        src="{{tutorialLiked ? '/pages/images/index-images/how-to-play/已点赞.png' : '/pages/images/index-images/how-to-play/点赞.png'}}"
+        mode="aspectFit"
+      ></image>
+      <text>点赞 {{tutorialLikeCount}}</text>
+    </button>
+    <button
+      class="tutorial-interaction-button {{tutorialFavorited ? 'is-active' : ''}}"
+      hover-class="none"
+      bindtap="onTutorialFavoriteTap"
+    >
+      <image
+        class="tutorial-interaction-icon"
+        src="{{tutorialFavorited ? '/pages/images/index-images/how-to-play/已收藏.png' : '/pages/images/index-images/how-to-play/收藏.png'}}"
+        mode="aspectFit"
+      ></image>
+      <text>收藏 {{tutorialFavoriteCount}}</text>
+    </button>
+    <button class="tutorial-interaction-button" open-type="share" hover-class="none">
+      <image
+        class="tutorial-interaction-icon"
+        src="/pages/images/index-images/how-to-play/分享.png"
+        mode="aspectFit"
+      ></image>
+      <text>分享 {{tutorialShareCount}}</text>
+    </button>
+  </view>
+</view>

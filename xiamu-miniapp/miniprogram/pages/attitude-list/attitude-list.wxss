@@ -1,0 +1,389 @@
+page {
+  height: 100%;
+  background: #ffffff;
+}
+
+.page {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.page-shell {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.content {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 0 28rpx;
+  box-sizing: border-box;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.status-holder {
+  width: 100%;
+}
+
+.top-bar {
+  display: flex;
+  align-items: center;
+  padding: 18rpx 0 12rpx;
+  flex-shrink: 0;
+}
+
+.back-button {
+  width: 72rpx;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-shrink: 0;
+}
+
+.back-icon {
+  margin-left: 10rpx;
+}
+
+.attitude-mode-scroll {
+  width: 100%;
+  white-space: nowrap;
+  margin-bottom: 18rpx;
+  flex-shrink: 0;
+}
+
+.attitude-mode-list {
+  display: inline-flex;
+  align-items: center;
+  gap: 22rpx;
+  padding-right: 20rpx;
+}
+
+.attitude-mode-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 78rpx;
+  height: 58rpx;
+  padding: 0 18rpx;
+  border-radius: 999rpx;
+  box-sizing: border-box;
+  color: #2b313a;
+}
+
+.attitude-mode-item-active {
+  color: #ffffff;
+  background: #111111;
+}
+
+.attitude-mode-text {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 58rpx;
+  padding: 0;
+  font-size: 28rpx;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.cart-list {
+  flex: 1;
+  min-height: 0;
+  padding: 26rpx 0 12rpx;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.cart-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  min-height: 188rpx;
+  padding: 26rpx 22rpx 62rpx 20rpx;
+  border: 1rpx solid #BEBEBE;
+  background: #ffffff;
+  border-radius: 26rpx;
+  box-shadow: 0 10rpx 24rpx rgba(29, 35, 48, 0.05);
+  box-sizing: border-box;
+}
+
+.cart-item + .cart-item {
+  margin-top: 20rpx;
+}
+
+.cart-cover {
+  flex-shrink: 0;
+  width: 128rpx;
+  height: 128rpx;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12rpx;
+  border-radius: 8rpx;
+  background: #f5f6f8;
+  color: #2f3540;
+  font-size: 24rpx;
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.cart-cover-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.cart-cover-text {
+  font-size: 24rpx;
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.cart-copy {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.cart-title {
+  overflow: hidden;
+  font-size: 30rpx;
+  font-weight: 700;
+  line-height: 1.45;
+  color: #202631;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cart-subtitle {
+  overflow: hidden;
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #8a92a3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cart-tag {
+  align-self: flex-start;
+  margin-top: 12rpx;
+  padding: 6rpx 14rpx;
+  border-radius: 999rpx;
+  background: #fff3df;
+  color: #b27300;
+  font-size: 22rpx;
+}
+
+.cart-price-wrap {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  min-width: 116rpx;
+  min-height: 110rpx;
+}
+
+.cart-price {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #e62222;
+}
+
+.cart-platform {
+  margin-top: 10rpx;
+  font-size: 22rpx;
+  color: #8b8b8b;
+}
+
+.delete-button {
+  position: absolute;
+  right: 18rpx;
+  bottom: 16rpx;
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.delete-icon {
+  width: 34rpx;
+  height: 34rpx;
+}
+
+.empty-area {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-graphic {
+  position: relative;
+  width: 180rpx;
+  height: 174rpx;
+}
+
+.paper-back,
+.paper-front {
+  position: absolute;
+  width: 88rpx;
+  height: 116rpx;
+  border: 5rpx solid #343434;
+  border-radius: 10rpx;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+.paper-back {
+  top: 18rpx;
+  left: 62rpx;
+}
+
+.paper-front {
+  top: 42rpx;
+  left: 30rpx;
+}
+
+.paper-line {
+  position: absolute;
+  left: 16rpx;
+  height: 5rpx;
+  border-radius: 999rpx;
+  background: #343434;
+}
+
+.line-a {
+  top: 26rpx;
+  width: 48rpx;
+}
+
+.line-b {
+  top: 46rpx;
+  width: 38rpx;
+}
+
+.line-c {
+  top: 66rpx;
+  width: 52rpx;
+}
+
+.graphic-star {
+  position: absolute;
+  color: #343434;
+  font-size: 32rpx;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.star-a {
+  top: 8rpx;
+  left: 12rpx;
+}
+
+.star-b {
+  right: 10rpx;
+  bottom: 18rpx;
+}
+
+.empty-text {
+  margin-top: 24rpx;
+  font-size: 26rpx;
+  color: #8b8b8b;
+}
+
+.summary-row {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 24rpx 0 18rpx;
+  color: #8a8a8a;
+  flex-shrink: 0;
+}
+
+.summary-count {
+  font-size: 32rpx;
+  flex-shrink: 0;
+}
+
+.summary-actions {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.summary-action-button {
+  min-width: 128rpx;
+  height: 68rpx;
+  padding: 0 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 999rpx;
+  font-size: 28rpx;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.summary-action-button::after {
+  border: none;
+}
+
+.clear-button {
+  background: #111111;
+  color: #ffffff;
+}
+
+.tab-bar {
+  display: flex;
+  align-items: center;
+  padding: 18rpx 0 env(safe-area-inset-bottom);
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 -6rpx 16rpx rgba(0, 0, 0, 0.08);
+  flex-shrink: 0;
+}
+
+.tab-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8rpx 0;
+  color: #7f8591;
+}
+
+.tab-item-active {
+  color: #1677ff;
+}
+
+.tab-icon-image {
+  width: 48rpx;
+  height: 48rpx;
+  display: block;
+}
+
+.tab-text {
+  margin-top: 10rpx;
+  font-size: 26rpx;
+}

@@ -1,0 +1,103 @@
+<view class="page">
+  <view class="status-holder" style="height: {{statusBarHeight}}px;"></view>
+
+  <view class="nav-bar">
+    <view class="nav-left" bindtap="navigateBack">
+      <image class="nav-back navigation-back-icon" src="/pages/images/index-images/返回.png" mode="aspectFit"></image>
+    </view>
+    <text class="nav-title">{{pageTitle}}</text>
+    <view style="width: 144rpx; height: 56rpx; flex-shrink: 0;"></view>
+  </view>
+
+  <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="content">
+      <view class="map-panel">
+        <map
+          class="location-map"
+          latitude="{{mapLatitude}}"
+          longitude="{{mapLongitude}}"
+          scale="16"
+          markers="{{locationMarkers}}"
+          show-location="{{false}}"
+        ></map>
+        <view class="location-picker" bindtap="onChooseLocation">
+          <text class="location-picker-text">{{hasLocation ? locationTitle : '选择收货位置'}}</text>
+          <image class="navigation-forward-icon" src="/pages/images/index-images/前往.png" mode="aspectFit"></image>
+        </view>
+      </view>
+
+      <view class="form-card">
+        <view class="form-group">
+          <view class="form-label-row">
+            <view class="form-label"><text class="required-mark">*</text><text>收件人姓名</text></view>
+            <text class="form-count">{{nameCountText}}</text>
+          </view>
+          <input
+            class="form-input"
+            value="{{recipientName}}"
+            placeholder="请输入收件人姓名"
+            placeholder-class="form-placeholder"
+            maxlength="20"
+            cursor-spacing="24"
+            bindinput="onRecipientNameInput"
+          />
+        </view>
+
+        <view class="form-group">
+          <view class="form-label-row">
+            <view class="form-label"><text class="required-mark">*</text><text>手机号</text></view>
+            <text class="form-count">11位中国大陆手机号</text>
+          </view>
+          <input
+            class="form-input"
+            value="{{recipientPhone}}"
+            placeholder="请输入手机号"
+            placeholder-class="form-placeholder"
+            maxlength="11"
+            type="number"
+            cursor-spacing="24"
+            bindinput="onRecipientPhoneInput"
+          />
+        </view>
+
+        <view class="form-group">
+          <view class="form-label-row">
+            <view class="form-label"><text class="required-mark">*</text><text>省、市、区</text></view>
+            <text class="form-count">顺丰上门取件必填</text>
+          </view>
+          <picker mode="region" value="{{regionValue}}" bindchange="onRegionChange">
+            <view class="region-picker {{regionText ? '' : 'region-picker-placeholder'}}">
+              <text>{{regionText || '请选择省、市、区'}}</text>
+              <text class="region-picker-arrow">></text>
+            </view>
+          </picker>
+        </view>
+
+        <view class="form-group form-group-last">
+          <view class="form-label-row">
+            <view class="form-label"><text class="required-mark">*</text><text>详细地址</text></view>
+            <text class="form-count">{{addressCountText}}</text>
+          </view>
+          <textarea
+            class="form-textarea"
+            value="{{addressDetail}}"
+            placeholder="请输入详细收货地址，如楼栋、单元、门牌号"
+            placeholder-class="form-placeholder"
+            maxlength="120"
+            auto-height
+            cursor-spacing="24"
+            bindinput="onAddressDetailInput"
+          ></textarea>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <view class="bottom-bar">
+    <button
+      class="submit-button {{canSubmit ? '' : 'submit-button-disabled'}}"
+      bindtap="onSubmitTap"
+      disabled="{{!canSubmit}}"
+    >{{submitButtonText}}</button>
+  </view>
+</view>

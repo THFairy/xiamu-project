@@ -1,0 +1,66 @@
+# 用途：忽略依赖、构建产物、私密配置、运行数据及本地版本备份，防止敏感或无关文件上传 GitHub。
+
+# 本地版本源备份：Git 分支实际使用仓库根目录下的三个项目目录
+/official-version/
+/beta-version/
+/database-backups/
+/.git-old-backup-*/
+/.git-empty-backup/
+
+# Node / 前端构建产物
+**/node_modules/
+**/dist/
+**/dist-ssr/
+**/.vite/
+**/.cache/
+**/coverage/
+**/*.tsbuildinfo
+
+# 环境变量：默认全部忽略，仅允许无密钥的前端构建配置和示例文件
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.*.example
+!/xiamu-adminweb/.env.development
+!/xiamu-adminweb/.env.production
+!/xiamu-adminweb/.env.production-console
+
+# 证书、密钥与签名材料
+**/certs/
+**/*.pem
+**/*.key
+**/*.crt
+**/*.csr
+**/*.p12
+**/*.pfx
+
+# 后端运行时数据和用户上传内容
+**/cloud-data/uploads/
+**/cloud-data/sfexpress-callbacks/
+**/remote/temp/
+**/remote/production-source/
+**/remote/deploy/*.tar.gz
+**/temp/
+**/tmp-*/
+
+# 微信开发者工具本地文件与构建产物
+**/miniprogram_npm/
+**/project.private.config.json
+**/*.wxapkg
+
+# 日志、压缩包与临时文件
+**/*.log
+**/*.tmp
+**/*.tar
+**/*.tgz
+**/*.tar.gz
+**/*.zip
+**/*.7z
+**/verify-*.js
+
+# 编辑器与操作系统文件
+.idea/
+.vscode/
+.agents/
+.DS_Store
+Thumbs.db

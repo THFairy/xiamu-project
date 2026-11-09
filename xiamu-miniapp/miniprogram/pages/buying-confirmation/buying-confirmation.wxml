@@ -1,0 +1,127 @@
+<view class="page">
+  <block wx:if="{{product}}">
+    <view class="status-holder" style="height: {{statusBarHeight}}px;"></view>
+
+    <view class="nav-bar">
+      <view class="nav-left" bindtap="onBackTap">
+        <image class="nav-back navigation-back-icon" src="/pages/images/index-images/返回.png" mode="aspectFit"></image>
+      </view>
+      <text class="nav-title">{{pageTitle}}</text>
+      <view style="width: 144rpx; height: 56rpx; flex-shrink: 0;"></view>
+    </view>
+
+    <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+      <view class="content">
+        <view class="address-card" bindtap="onAddressTap">
+          <view class="address-icon-wrap">
+            <image class="address-icon-image" src="/pages/images/order-images/location.jpg" mode="aspectFit"></image>
+          </view>
+          <view class="address-copy">
+            <text class="address-title {{hasAddress ? 'address-title-filled' : ''}}">{{addressText}}</text>
+            <text class="address-desc {{hasAddress ? 'address-desc-filled' : ''}}">{{addressDetailText}}</text>
+          </view>
+          <view class="address-arrow-wrap">
+            <image class="navigation-forward-icon" src="/pages/images/index-images/前往.png" mode="aspectFit"></image>
+          </view>
+        </view>
+
+        <view class="product-card">
+          <view class="product-top">
+            <image
+              wx:if="{{previewImage}}"
+              class="product-thumb"
+              src="{{previewImage}}"
+              mode="aspectFill"
+              binderror="onPreviewImageError"
+            ></image>
+            <view wx:else class="product-thumb product-thumb-fallback">
+              <text class="product-thumb-text">{{product.coverTitle}}</text>
+            </view>
+
+            <view class="product-copy">
+              <text class="product-title">{{product.title}}</text>
+              <text class="product-subtitle">{{product.subtitle}}</text>
+
+              <view class="service-tag-row">
+                <block wx:for="{{serviceTags}}" wx:key="index">
+                  <text class="service-tag">{{item}}</text>
+                </block>
+              </view>
+            </view>
+
+            <view class="product-price-block">
+              <text class="product-price">￥{{productAmountText}}</text>
+              <text class="product-seller">{{sellerText}}</text>
+            </view>
+          </view>
+
+          <view class="remark-row">
+            <text class="remark-label">{{remarkTitle}}</text>
+            <view class="remark-value-wrap">
+              <input
+                class="remark-input"
+                value="{{remarkText}}"
+                maxlength="255"
+                placeholder="暂无备注"
+                placeholder-class="remark-input-placeholder"
+                bindinput="onRemarkInput"
+              />
+            </view>
+          </view>
+        </view>
+
+        <view class="amount-card">
+          <view class="amount-row">
+            <text class="amount-label">商品总额</text>
+            <text class="amount-value">￥{{productAmountText}}</text>
+          </view>
+          <view class="amount-row">
+            <text class="amount-label">配送费</text>
+            <text class="amount-value">{{shippingFeeText}}</text>
+          </view>
+          <view class="amount-row amount-row-total">
+            <text class="amount-total-label">合计：</text>
+            <text class="amount-total-value">￥{{totalAmountText}}</text>
+          </view>
+        </view>
+
+        <view class="payment-card">
+          <picker
+            mode="selector"
+            range="{{paymentMethodOptions}}"
+            range-key="label"
+            value="{{paymentMethodIndex}}"
+            bindchange="onPaymentMethodChange"
+          >
+            <view class="payment-picker">
+              <view class="payment-copy">
+                <text class="payment-label">支付方式</text>
+                <text class="payment-desc">{{selectedPaymentDesc}}</text>
+              </view>
+              <view class="payment-selected-wrap">
+                <text class="payment-selected">{{selectedPaymentLabel}}</text>
+                <text class="payment-arrow">></text>
+              </view>
+            </view>
+          </picker>
+        </view>
+      </view>
+    </scroll-view>
+
+    <view class="bottom-bar">
+      <view class="bottom-price">
+        <text class="bottom-price-value">￥{{totalAmountText}}</text>
+      </view>
+      <button class="submit-button" bindtap="onSubmitTap" loading="{{isSubmitting}}" disabled="{{isSubmitting}}">
+        确认购买
+      </button>
+    </view>
+  </block>
+
+  <block wx:else>
+    <view class="empty-page">
+      <text class="empty-title">未找到对应商品</text>
+      <button class="empty-back" bindtap="onBackTap">返回上一页</button>
+    </view>
+  </block>
+</view>

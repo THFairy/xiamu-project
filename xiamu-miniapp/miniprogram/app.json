@@ -1,0 +1,50 @@
+{
+  "pages": [
+    "pages/jiazai/jiazai",
+    "pages/index/index",
+    "pages/handheld-recycling/handheld-recycling",
+    "pages/handheld-buying/handheld-buying",
+    "pages/buying-confirmation/buying-confirmation",
+    "pages/buying-checkout/buying-checkout",
+    "pages/pickup-service/pickup-service",
+    "pages/address-form/address-form",
+    "pages/address-editor/address-editor",
+    "pages/recycling-condition/recycling-condition",
+    "pages/checkout/checkout",
+    "pages/sorts/sorts",
+    "pages/order/order",
+    "pages/recycle-orders/recycle-orders",
+    "pages/recycle-pickup-detail/recycle-pickup-detail",
+    "pages/mine/mine",
+    "pages/attitude-list/attitude-list",
+    "pages/customer-service/customer-service",
+    "pages/feature-placeholder/feature-placeholder",
+    "pages/how-to-play/how-to-play",
+    "pages/user-settings/user-settings",
+    "pages/privacy-policy/index",
+    "pages/user-agreement/index",
+    "pages/profile/profile",
+    "pages/product-detail/product-detail",
+    "pages/logs/logs"
+  ],
+  "window": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "玩数码的夏木",
+    "navigationBarBackgroundColor": "#ffffff",
+    "backgroundColor": "#ffffff",
+    "backgroundTextStyle": "light"
+  },
+  "style": "v2",
+  "componentFramework": "glass-easel",
+  "__usePrivacyCheck__": true,
+  "permission": {
+    "scope.userLocation": {
+      "desc": "用于在新增或编辑收货地址时选择收货位置"
+    }
+  },
+  "requiredPrivateInfos": [
+    "chooseLocation"
+  ],
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

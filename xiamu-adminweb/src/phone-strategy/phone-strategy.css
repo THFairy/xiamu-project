@@ -1,0 +1,221 @@
+/* 用途：集中定义后台在竖屏窗口下的菜单、表格、搜索栏、操作栏及弹窗响应式布局。 */
+html.phone-layout,
+html.phone-layout body,
+html.phone-layout #app {
+    width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+}
+
+.phone-layout .admin-layout,
+.phone-layout .admin-layout > .el-container {
+    width: 100%;
+    min-width: 0;
+}
+
+.phone-layout .admin-layout > .el-header {
+    height: 64px;
+    padding: 0;
+}
+
+.phone-layout .admin-main {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    padding: 12px 10px 20px;
+    overflow-x: hidden;
+}
+
+.phone-layout .admin-main > * {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.phone-layout .f-header .dropdown {
+    max-width: 52vw;
+    margin-right: 10px;
+    margin-left: 6px;
+}
+
+.phone-layout .f-header .dropdown > span {
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.phone-layout .f-header .icon-btn {
+    width: 44px;
+    flex-shrink: 0;
+}
+
+.phone-layout .f-tag-list {
+    left: 0 !important;
+    padding-right: 4px;
+    padding-left: 4px;
+}
+
+.phone-layout .phone-menu-drawer .el-drawer__body {
+    height: 100%;
+    padding: 0;
+    overflow: hidden;
+}
+
+.phone-layout .phone-menu-drawer .f-menu {
+    position: static;
+    top: auto;
+    bottom: auto;
+    width: 100% !important;
+    height: 100%;
+    box-shadow: none;
+}
+
+.phone-layout .phone-search-header .el-row {
+    row-gap: 4px;
+}
+
+.phone-layout .phone-search-header > .el-row > .el-col {
+    max-width: 100%;
+    flex: 0 0 100%;
+}
+
+.phone-layout .phone-search-header .el-form-item {
+    margin-bottom: 10px;
+}
+
+.phone-layout .phone-search-header .el-form-item__label {
+    box-sizing: border-box;
+    flex: 0 0 80px;
+}
+
+.phone-layout .phone-search-actions {
+    justify-content: flex-start !important;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.phone-layout .phone-search-actions .el-button,
+.phone-layout .phone-list-header .el-button {
+    margin-left: 0;
+}
+
+.phone-layout .phone-list-header {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.phone-layout .phone-list-header > .phone-list-header-tools {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+}
+
+.phone-layout .phone-list-header > :not(.phone-list-header-tools) {
+    flex-shrink: 0;
+}
+
+.phone-layout .el-table {
+    width: 100% !important;
+    max-width: 100%;
+    touch-action: pan-x pan-y;
+}
+
+.phone-layout .el-table .cell {
+    white-space: nowrap;
+}
+
+.phone-layout .el-table__body-wrapper,
+.phone-layout .el-table__header-wrapper,
+.phone-layout .el-scrollbar__wrap {
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
+.phone-layout .el-table .el-scrollbar__wrap {
+    overflow-x: auto;
+}
+
+.phone-layout .el-table-fixed-column--left,
+.phone-layout .el-table-fixed-column--right {
+    background-color: var(--el-table-tr-bg-color, #fff);
+}
+
+.phone-layout .el-pagination {
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+
+.phone-layout .el-dialog {
+    width: calc(100vw - 20px) !important;
+    max-width: none !important;
+    margin-top: 2vh !important;
+}
+
+.phone-layout .el-dialog__body {
+    padding: 16px 14px;
+}
+
+.phone-layout .el-dialog__footer {
+    padding: 10px 14px 16px;
+}
+
+.phone-layout .el-dialog__footer .dialog-footer,
+.phone-layout .el-dialog__footer > span {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.phone-layout .el-dialog__footer .el-button {
+    margin-left: 0;
+}
+
+.phone-layout .el-drawer:not(.phone-menu-drawer) {
+    width: min(94vw, 560px) !important;
+}
+
+.phone-layout .el-form-item__content,
+.phone-layout .el-form-item__content > .el-input,
+.phone-layout .el-form-item__content > .el-select,
+.phone-layout .el-form-item__content > .el-date-editor,
+.phone-layout .el-form-item__content > .el-input-number,
+.phone-layout .el-form-item__content > .el-cascader {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.phone-layout .el-form--inline .el-form-item {
+    width: 100%;
+    margin-right: 0;
+}
+
+.phone-layout .el-form--inline .el-form-item__content {
+    flex: 1;
+}
+
+.phone-layout .formDialog-body {
+    max-height: calc(100vh - 170px);
+}
+
+@media (max-width: 520px) and (orientation: portrait) {
+    .phone-layout .f-header .dropdown {
+        max-width: 44vw;
+        margin-right: 6px;
+    }
+
+    .phone-layout .f-header .dropdown .el-avatar {
+        display: none;
+    }
+
+    .phone-layout .phone-list-header > .phone-list-header-tools {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .phone-layout .el-dialog__header {
+        padding: 16px 42px 10px 14px;
+    }
+}

@@ -1,0 +1,204 @@
+<!-- 用途：展示“我的”页面及微信手机号、头像、昵称授权弹窗。 -->
+<view class="page">
+  <view wx:if="{{isTabLoading}}" class="route-loading">
+    <view class="route-loading-spinner"></view>
+    <text class="route-loading-text">正在加载页面</text>
+  </view>
+
+  <view wx:else class="page-shell {{pageTransitionClass}}">
+    <block wx:if="{{!isLoggedIn}}">
+      <view class="guard-page">
+        <view class="status-holder" style="height: {{statusBarHeight}}px;"></view>
+
+        <view class="top-bar top-bar-guard">
+          <view></view>
+          <view style="width: 144rpx; height: 56rpx; flex-shrink: 0;"></view>
+        </view>
+
+        <view class="guard-body">
+          <button
+            class="guard-login-button"
+            open-type="getPhoneNumber"
+            bindgetphonenumber="onWechatLogin"
+          >{{loginButtonText}}</button>
+        </view>
+      </view>
+    </block>
+
+    <block wx:else>
+      <scroll-view class="content-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+        <view class="hero">
+          <view class="status-holder" style="height: {{statusBarHeight}}px;"></view>
+
+          <view class="top-bar">
+            <view class="page-title">我的</view>
+            <view style="width: 144rpx; height: 56rpx; flex-shrink: 0;"></view>
+          </view>
+
+          <view class="profile-card">
+            <view class="avatar-button avatar-button-static" bindtap="onAvatarTap">
+              <image class="avatar-image" src="{{userProfile.avatarUrl || draftProfile.avatarUrl}}" mode="aspectFill"></image>
+            </view>
+
+            <view class="profile-copy">
+              <text class="profile-name">欢迎您 {{userProfile.displayName}}</text>
+              <text class="profile-hint">uid:{{userProfile.uid}}</text>
+            </view>
+
+            <view class="profile-settings" bindtap="onEditProfile">
+              <text class="profile-settings-text">设置</text>
+              <image class="profile-settings-arrow navigation-forward-icon" src="/pages/images/index-images/前往.png" mode="aspectFit"></image>
+            </view>
+          </view>
+        </view>
+
+        <view class="section section-panel">
+          <view class="section-header">
+            <text class="section-title">我的回收</text>
+            <view class="section-view-all" bindtap="onOrderCenterTap">
+              <text class="section-view-all-text">查看全部</text>
+              <image class="section-view-all-icon navigation-forward-icon" src="/pages/images/index-images/前往.png" mode="aspectFit"></image>
+            </view>
+          </view>
+          <view class="card">
+            <view class="order-grid">
+              <block wx:for="{{orderMenus}}" wx:key="id">
+                <view class="order-item" data-name="{{item.name}}" data-mode="{{item.mode}}" bindtap="onOrderTap">
+                  <image class="order-status-icon" src="{{item.iconUrl}}" mode="aspectFit"></image>
+                  <text class="menu-label">{{item.name}}</text>
+                </view>
+              </block>
+            </view>
+          </view>
+        </view>
+
+        <view class="section section-panel">
+          <view class="section-header">
+            <text class="section-title">我的喜欢</text>
+            <view class="section-view-all" bindtap="onCollectionCenterTap">
+              <text class="section-view-all-text">查看全部</text>
+              <image class="section-view-all-icon navigation-forward-icon" src="/pages/images/index-images/前往.png" mode="aspectFit"></image>
+            </view>
+          </view>
+          <view class="card">
+            <view class="stat-grid">
+              <block wx:for="{{collectionStatsTop}}" wx:key="id">
+                <view class="stat-item" data-label="{{item.label}}" bindtap="onStatTap">
+                  <text class="stat-count">{{item.count}}</text>
+                  <text class="stat-label">{{item.label}}</text>
+                </view>
+              </block>
+            </view>
+            <view class="stat-grid stat-grid-bottom">
+              <block wx:for="{{collectionStatsBottom}}" wx:key="id">
+                <view class="stat-item" data-label="{{item.label}}" bindtap="onStatTap">
+                  <text class="stat-count">{{item.count}}</text>
+                  <text class="stat-label">{{item.label}}</text>
+                </view>
+              </block>
+            </view>
+          </view>
+        </view>
+
+        <view class="section section-panel">
+          <text class="section-title">更多功能</text>
+          <view class="card">
+            <view class="feature-grid">
+              <block wx:for="{{featureMenus}}" wx:key="id">
+                <view
+                  wx:if="{{item.id === 1 || item.id === 3}}"
+                  class="feature-item"
+                >
+                  <button
+                    class="feature-contact-trigger"
+                    open-type="contact"
+                    session-from="{{item.name}}"
+                  ><image class="feature-icon-image" src="{{item.iconUrl}}" mode="aspectFit"></image></button>
+                  <text class="menu-label">{{item.name}}</text>
+                </view>
+                <block wx:elif="{{item.name !== '寄快递'}}">
+                  <view
+                    class="feature-item"
+                    data-name="{{item.name}}"
+                    data-action="{{item.action}}"
+                    bindtap="onFeatureTap"
+                  >
+                    <view class="feature-icon-wrap">
+                      <image class="feature-icon-image" src="{{item.iconUrl}}" mode="aspectFit"></image>
+                    </view>
+                    <text class="menu-label">{{item.name}}</text>
+                  </view>
+                </block>
+              </block>
+            </view>
+          </view>
+        </view>
+
+        <view wx:if="{{notices.length}}" class="section section-panel section-last section-notice-panel">
+          <text class="section-title">通知公告</text>
+          <view class="card notice-list">
+            <block wx:for="{{notices}}" wx:key="id">
+              <view class="notice-item" data-id="{{item.id}}" data-title="{{item.title}}" bindtap="onNoticeTap">
+                <text class="notice-title">{{item.title}}</text>
+                <image class="notice-arrow navigation-forward-icon" src="/pages/images/index-images/前往.png" mode="aspectFit"></image>
+              </view>
+            </block>
+          </view>
+        </view>
+        <view class="mine-content-bottom-spacer"></view>
+      </scroll-view>
+    </block>
+
+  </view>
+  <view class="tab-bar">
+    <block wx:for="{{tabs}}" wx:key="key">
+      <view class="tab-item {{currentTab === item.key ? 'tab-item-active' : ''}}" data-key="{{item.key}}" data-path="{{item.path}}" bindtap="onTabTap">
+        <image class="tab-icon-image" src="{{currentTab === item.key ? '/pages/images/index-images/页面切换图标/回到' + item.text + '.png' : '/pages/images/index-images/页面切换图标/' + item.text + '.png'}}" mode="aspectFit"></image>
+        <text class="tab-text">{{item.text}}</text>
+      </view>
+    </block>
+  </view>
+
+  <view wx:if="{{showWechatProfileAuth}}" class="wechat-profile-mask" catchtouchmove="preventWechatProfileMaskMove">
+    <view class="wechat-profile-dialog">
+      <text class="wechat-profile-title">完善微信资料</text>
+      <text class="wechat-profile-desc">请选择微信头像并填写微信昵称，已授权手机号将自动作为用户名。</text>
+
+      <button class="wechat-avatar-picker" open-type="chooseAvatar" bindchooseavatar="onWechatAvatarChoose">
+        <image class="wechat-avatar-preview" src="{{draftProfile.avatarUrl}}" mode="aspectFill"></image>
+        <view class="wechat-avatar-copy">
+          <text class="wechat-auth-label">微信头像</text>
+          <text class="wechat-auth-hint">点击选择微信头像</text>
+        </view>
+        <text class="wechat-auth-arrow">›</text>
+      </button>
+
+      <view class="wechat-nickname-row">
+        <view class="wechat-avatar-copy">
+          <text class="wechat-auth-label">微信昵称</text>
+          <text class="wechat-auth-hint">点击输入框可选择微信昵称</text>
+        </view>
+        <input
+          class="wechat-nickname-input"
+          type="nickname"
+          maxlength="20"
+          placeholder="请输入昵称"
+          value="{{draftProfile.nickname}}"
+          bindinput="onWechatNicknameInput"
+        />
+      </view>
+
+      <view class="wechat-username-row">
+        <text class="wechat-auth-label">登录用户名</text>
+        <text class="wechat-username-value">{{userProfile.username || userProfile.phone}}</text>
+      </view>
+
+      <text class="wechat-profile-privacy">头像、昵称用于个人资料展示，手机号用于登录和账号识别。</text>
+
+      <view class="wechat-profile-actions">
+        <button class="wechat-profile-action wechat-profile-cancel" bindtap="onWechatProfileAuthCancel">稍后设置</button>
+        <button class="wechat-profile-action wechat-profile-confirm" loading="{{wechatProfileSaving}}" bindtap="onWechatProfileAuthConfirm">确认使用</button>
+      </view>
+    </view>
+  </view>
+</view>

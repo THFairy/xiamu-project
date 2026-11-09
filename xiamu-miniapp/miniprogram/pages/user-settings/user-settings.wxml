@@ -1,0 +1,30 @@
+<view class="page">
+  <view class="status-holder" style="height: {{statusBarHeight}}px;"></view>
+
+  <view class="nav-bar">
+    <view class="nav-left" bindtap="navigateBack">
+      <image class="nav-back navigation-back-icon" src="/pages/images/index-images/返回.png" mode="aspectFit"></image>
+    </view>
+    <text class="nav-title">用户设置</text>
+    <view class="nav-right-spacer"></view>
+  </view>
+
+  <view class="content">
+    <view class="section-card">
+      <view class="setting-item" bindtap="onPersonalInfoTap">
+        <text class="setting-label">个人信息</text>
+        <image class="setting-arrow navigation-forward-icon" src="/pages/images/index-images/前往.png" mode="aspectFit"></image>
+      </view>
+
+      <view class="setting-item" bindtap="onPrivacyPolicyTap">
+        <text class="setting-label">隐私政策</text>
+        <image class="setting-arrow navigation-forward-icon" src="/pages/images/index-images/前往.png" mode="aspectFit"></image>
+      </view>
+
+      <view class="setting-item" bindtap="onUserAgreementTap">
+        <text class="setting-label">用户协议</text>
+        <image class="setting-arrow navigation-forward-icon" src="/pages/images/index-images/前往.png" mode="aspectFit"></image>
+      </view>
+    </view>
+  </view>
+</view>

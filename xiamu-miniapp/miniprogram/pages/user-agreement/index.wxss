@@ -1,0 +1,12 @@
+/* 用途：保持用户协议页面原有的背景、导航与正文卡片样式。 */
+page { height: 100%; background: #f7f8fa; color: #1a1a1a; }
+.page { height: 100vh; display: flex; flex-direction: column; background: #f7f8fa; }
+.status-holder { width: 100%; background: #ffffff; }
+.nav-bar { position: relative; display: flex; align-items: center; justify-content: space-between; padding: 18rpx 24rpx 20rpx; background: #ffffff; flex-shrink: 0; }
+.nav-left { min-width: 96rpx; display: flex; align-items: center; }
+.nav-back { width: 18rpx; height: 18rpx; margin-left: 8rpx; border-left: 4rpx solid #111111; border-top: 4rpx solid #111111; transform: rotate(-45deg); box-sizing: border-box; }
+.nav-title { position: absolute; left: 50%; transform: translateX(-50%); max-width: 520rpx; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 38rpx; font-weight: 700; color: #21242b; }
+.nav-right-spacer { width: 144rpx; height: 56rpx; flex-shrink: 0; }
+.content { flex: 1; min-height: 0; padding: 24rpx; box-sizing: border-box; }
+.document-card { padding: 30rpx 28rpx 42rpx; border-radius: 20rpx; background: #ffffff; box-shadow: 0 8rpx 24rpx rgba(31, 35, 41, 0.08); box-sizing: border-box; }
+.document-section-body { display: block; font-size: 28rpx; line-height: 1.8; color: #596170; text-align: justify; white-space: pre-wrap; }

@@ -1,0 +1,40 @@
+<view class="page">
+  <view class="status-holder" style="height: {{statusBarHeight}}px;"></view>
+
+  <view class="nav-bar">
+    <view class="nav-left" bindtap="navigateBack">
+      <image class="nav-back navigation-back-icon" src="/pages/images/index-images/返回.png" mode="aspectFit"></image>
+    </view>
+    <text class="nav-title">个人信息</text>
+    <view style="width: 144rpx; height: 56rpx; flex-shrink: 0;"></view>
+  </view>
+
+  <scroll-view class="content-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="avatar-wrap">
+      <button class="avatar-button" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
+        <image class="avatar-image" src="{{profile.avatarUrl}}" mode="aspectFill"></image>
+      </button>
+    </view>
+
+    <view class="section-card section-list">
+      <view class="field-item">
+        <text class="field-label">用户名</text>
+        <view class="field-value-wrap">
+          <text class="field-value field-value-dark">{{profile.username || '授权后自动生成'}}</text>
+        </view>
+      </view>
+
+      <view class="field-item">
+        <text class="field-label">昵称</text>
+        <input class="nickname-input" type="nickname" placeholder="请输入昵称" value="{{profile.nickname}}" bindinput="onNicknameInput" bindchange="onNicknameBlur" bindblur="onNicknameBlur" />
+      </view>
+
+      <view class="field-item" bindtap="onAddressTap">
+        <text class="field-label">管理收货地址</text>
+        <view class="field-value-wrap">
+          <image class="field-arrow navigation-forward-icon" src="/pages/images/index-images/前往.png" mode="aspectFit"></image>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+</view>

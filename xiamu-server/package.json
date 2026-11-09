@@ -1,0 +1,17 @@
+{
+  "name": "xiamu-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "夏木网页管理端与微信小程序共用后端",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "check": "node --check index.js && node --check admin.js && node --check db.js && node --check recycle-admin.js && node --check recycle-config.js && node --check recycle-review-admin.js && node --check recycle-settings.js && node --check sf-express.js && node --check data-analysis/config.js && node --check data-analysis/routes.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "mysql2": "^3.15.3"
+  }
+}

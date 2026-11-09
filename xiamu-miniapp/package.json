@@ -1,0 +1,21 @@
+{
+  "name": "miniprogram-ts-quickstart",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "backend": "npm --prefix ../xiamu-server start",
+    "diff:prepare": "node remote/scripts/build-diff-redactions.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "",
+  "dependencies": {
+    "@cloudbase/js-sdk": "^3.4.7",
+    "esbuild": "^0.28.1"
+  },
+  "devDependencies": {
+    "miniprogram-api-typings": "^5.2.3",
+    "typescript": "^6.0.3"
+  }
+}

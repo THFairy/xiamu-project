@@ -1,0 +1,213 @@
+<view class="page">
+  <view class="status-holder" style="height: {{statusBarHeight}}px;"></view>
+
+  <view class="nav-bar">
+    <view class="nav-left" bindtap="onBackTap">
+      <image class="nav-back navigation-back-icon" src="/pages/images/index-images/返回.png" mode="aspectFit"></image>
+    </view>
+    <text class="nav-title">{{pageTitle}}</text>
+    <view class="nav-right"></view>
+  </view>
+
+  <view class="tab-bar">
+    <view class="tab-item" data-tab="mail" bindtap="onTabTap">
+      <text class="tab-text {{activeTab === 'mail' ? 'tab-text-active' : ''}}">自己邮寄</text>
+      <view class="tab-line {{activeTab === 'mail' ? 'tab-line-active' : ''}}"></view>
+    </view>
+    <view class="tab-item" data-tab="pickup" bindtap="onTabTap">
+      <text class="tab-text {{activeTab === 'pickup' ? 'tab-text-active' : ''}}">上门取件</text>
+      <view class="tab-line {{activeTab === 'pickup' ? 'tab-line-active' : ''}}"></view>
+    </view>
+  </view>
+
+  <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="content">
+      <view class="summary-card {{selectedItemsExpanded ? 'summary-card-expanded' : ''}}">
+        <view class="summary-header" bindtap="onSelectedItemsExpandTap">
+          <text class="summary-title">本次回收提交</text>
+          <view class="summary-values">
+            <text class="summary-value">已选 {{selectedItemCount}} 件</text>
+            <text class="summary-arrow {{selectedItemsExpanded ? 'summary-arrow-expanded' : ''}}">></text>
+          </view>
+        </view>
+
+        <view wx:if="{{selectedItemsExpanded}}" class="recycle-selection-list">
+          <block wx:for="{{selectableRecycleItems}}" wx:key="id">
+            <view class="recycle-selection-item" data-item-id="{{item.id}}" catchtap="onSelectableRecycleItemTap">
+              <view class="recycle-selection-check {{item.selected ? 'recycle-selection-check-active' : ''}}">
+                <text wx:if="{{item.selected}}" class="recycle-selection-check-mark">✓</text>
+              </view>
+              <image
+                wx:if="{{item.coverImage}}"
+                class="recycle-selection-cover"
+                src="{{item.coverImage}}"
+                mode="aspectFill"
+              ></image>
+              <view wx:else class="recycle-selection-cover recycle-selection-cover-placeholder recycle-selection-cover-{{item.coverTheme}}">{{item.coverLabel}}</view>
+              <view class="recycle-selection-copy">
+                <text class="recycle-selection-title">{{item.title}}</text>
+                <text class="recycle-selection-price">预估可得 ¥{{item.estimatePriceText}}</text>
+              </view>
+            </view>
+          </block>
+          <text wx:if="{{!selectableRecycleItems.length}}" class="recycle-selection-empty">暂无待卖出商品</text>
+        </view>
+      </view>
+
+      <block wx:if="{{activeTab === 'mail'}}">
+        <view class="panel-card">
+          <view class="section-title-row">
+            <view class="section-icon section-icon-red">寄</view>
+            <text class="section-title section-title-red">手机官方收件地址</text>
+            <text class="copy-link" catchtap="onCopyOfficialAddressTap">点击复制</text>
+          </view>
+
+          <view class="address-detail-list">
+            <text class="address-line">姓名：{{officialRecipientName}}</text>
+            <text class="address-line">电话：{{officialRecipientPhone}}</text>
+            <text class="address-line">地址：{{officialRecipientAddress}}</text>
+          </view>
+
+          <view class="airmail-line"></view>
+        </view>
+
+        <view class="panel-card">
+          <view class="section-title-row">
+            <view class="section-icon section-icon-blue">车</view>
+            <text class="section-title">请选择快递公司</text>
+          </view>
+
+          <view class="chip-list">
+            <block wx:for="{{mailCourierOptions}}" wx:key="value">
+              <view
+                class="courier-chip {{selectedMailCourier === item.value ? 'courier-chip-active' : ''}}"
+                data-kind="mail"
+                data-value="{{item.value}}"
+                bindtap="onCourierTap"
+              >
+                <text class="courier-chip-text {{selectedMailCourier === item.value ? 'courier-chip-text-active' : ''}}">{{item.label}}</text>
+              </view>
+            </block>
+          </view>
+        </view>
+
+        <view class="panel-card tracking-card">
+          <view class="tracking-label">快递单号</view>
+          <input
+            class="tracking-input"
+            placeholder="请输入快递单号"
+            placeholder-class="tracking-placeholder"
+            value="{{trackingNumber}}"
+            bindinput="onTrackingInput"
+          />
+        </view>
+      </block>
+
+      <block wx:else>
+        <view class="panel-card">
+          <view class="section-title-row">
+            <view class="section-icon section-icon-orange">取</view>
+            <text class="section-title">玩家地址 上门取件地址</text>
+          </view>
+
+          <view class="customer-address-card">
+            <view class="customer-address-copy">
+              <text class="customer-address-name">{{customerAddressName}}</text>
+              <text wx:if="{{customerAddressPhone}}" class="customer-address-phone">{{customerAddressPhone}}</text>
+            </view>
+            <text class="customer-address-detail">{{customerAddressDetail}}</text>
+          </view>
+
+          <text class="address-prompt">{{addressPromptText}}</text>
+
+          <view class="address-action-row">
+            <button class="address-action-button address-action-button-copy" bindtap="onCopyCustomerAddressTap">复制地址</button>
+            <button class="address-action-button" bindtap="onChooseAddressTap">从地址簿选择</button>
+          </view>
+        </view>
+
+        <view class="panel-card">
+          <view class="section-title-row">
+            <view class="section-icon section-icon-blue">车</view>
+            <text class="section-title">选择快递</text>
+          </view>
+
+          <view class="chip-list chip-list-compact">
+            <block wx:for="{{pickupCourierOptions}}" wx:key="value">
+              <view
+                class="courier-chip courier-chip-logo {{selectedPickupCourier === item.value ? 'courier-chip-active' : ''}} {{!sfPickupAvailable ? 'courier-chip-disabled' : ''}}"
+                data-kind="pickup"
+                data-value="{{item.value}}"
+                bindtap="onCourierTap"
+              >
+                <text class="courier-chip-text {{selectedPickupCourier === item.value ? 'courier-chip-text-active' : ''}}">{{item.label}}</text>
+              </view>
+            </block>
+          </view>
+
+          <text wx:if="{{!sfPickupAvailable && sfPickupUnavailableReason}}" class="service-unavailable-text">{{sfPickupUnavailableReason}}</text>
+        </view>
+
+        <view class="panel-card">
+          <view class="section-title-row">
+            <view class="section-icon section-icon-yellow">时</view>
+            <text class="section-title">上门时间</text>
+          </view>
+
+          <view class="time-option {{pickupTimeMode === 'now' ? 'time-option-active' : ''}}" bindtap="onPickupNowTap">
+            <view class="time-radio {{pickupTimeMode === 'now' ? 'time-radio-active' : ''}}"></view>
+            <text class="time-option-text">立即上门</text>
+          </view>
+
+          <view class="time-option {{pickupTimeMode === 'schedule' && pickupTimeCategory === 'today' ? 'time-option-active' : ''}}" bindtap="onPickupTodayTap">
+            <view class="time-radio {{pickupTimeMode === 'schedule' && pickupTimeCategory === 'today' ? 'time-radio-active' : ''}}"></view>
+            <view class="time-copy">
+              <text class="time-option-text">今天剩余时间</text>
+              <text class="time-option-subtext">{{pickupTimeMode === 'schedule' && pickupTimeCategory === 'today' ? pickupTimeText : '按 1 小时选择，今天可预约时段'}}</text>
+            </view>
+            <text class="time-arrow">></text>
+          </view>
+
+          <view class="time-option {{pickupTimeMode === 'schedule' && pickupTimeCategory === 'tomorrow' ? 'time-option-active' : ''}}" bindtap="onPickupTomorrowTap">
+            <view class="time-radio {{pickupTimeMode === 'schedule' && pickupTimeCategory === 'tomorrow' ? 'time-radio-active' : ''}}"></view>
+            <view class="time-copy">
+              <text class="time-option-text">明天</text>
+              <text class="time-option-subtext">{{pickupTimeMode === 'schedule' && pickupTimeCategory === 'tomorrow' ? pickupTimeText : '按 1 小时选择，09:00-18:00'}}</text>
+            </view>
+            <text class="time-arrow">></text>
+          </view>
+        </view>
+
+      </block>
+    </view>
+  </scroll-view>
+
+  <view wx:if="{{pickupTimePickerVisible}}" class="pickup-time-picker-mask" catchtap="onPickupTimePickerClose">
+    <view class="pickup-time-picker" catchtap="onPickupTimePickerStopTap">
+      <view class="pickup-time-picker-header">
+        <text class="pickup-time-picker-title">{{pickupTimePickerTitle}}</text>
+        <text class="pickup-time-picker-close" catchtap="onPickupTimePickerClose">关闭</text>
+      </view>
+      <view class="pickup-time-slot-list">
+        <block wx:for="{{pickupTimePickerSlots}}" wx:key="*this">
+          <view class="pickup-time-slot {{pickupTimeText === item ? 'pickup-time-slot-active' : ''}}" data-slot="{{item}}" data-category="{{pickupTimePickerCategory}}" catchtap="onPickupTimeSlotTap">
+            <text class="pickup-time-slot-text">{{item}}</text>
+            <text wx:if="{{pickupTimeText === item}}" class="pickup-time-slot-check">✓</text>
+          </view>
+        </block>
+      </view>
+    </view>
+  </view>
+
+  <view class="bottom-bar">
+    <view class="bottom-copy">
+      <text class="bottom-count">已选 {{selectedItemCount}} 件</text>
+      <text class="bottom-price">预估可得 ¥{{selectedItemPriceText}}</text>
+    </view>
+    <button
+      class="submit-button {{activeTab === 'pickup' && !sfPickupAvailable ? 'submit-button-disabled' : ''}}"
+      bindtap="onSubmitTap"
+      disabled="{{activeTab === 'pickup' && !sfPickupAvailable}}"
+    >{{activeTab === 'pickup' && !sfPickupAvailable ? '顺丰待上线' : submitButtonText}}</button>
+  </view>
+</view>

@@ -1,0 +1,63 @@
+<view class="page">
+  <view class="status-holder" style="height: {{statusBarHeight}}px;"></view>
+
+  <view class="nav-bar">
+    <view class="nav-left" bindtap="navigateBack">
+      <image class="nav-back navigation-back-icon" src="/pages/images/index-images/返回.png" mode="aspectFit"></image>
+    </view>
+    <text class="nav-title">{{pageTitle}}</text>
+    <view style="width: 144rpx; height: 56rpx; flex-shrink: 0;"></view>
+  </view>
+
+  <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="content">
+      <view class="summary-card">
+        <view class="summary-cover summary-cover-{{coverTheme}}">{{coverLabel}}</view>
+        <view class="summary-copy">
+          <text class="summary-title">{{title}}</text>
+          <text class="summary-status">{{statusText}}</text>
+        </view>
+      </view>
+
+      <view class="detail-card">
+        <view class="detail-row">
+          <text class="detail-label">顺丰运单号</text>
+          <view class="detail-value-wrap">
+            <text class="detail-value">{{waybillNo || '暂无'}}</text>
+            <text class="detail-copy" data-value="{{waybillNo}}" data-label="运单号" bindtap="onCopyTap">复制</text>
+          </view>
+        </view>
+
+        <view class="detail-row">
+          <text class="detail-label">上门时间</text>
+          <text class="detail-value">{{pickupTimeText || '暂无'}}</text>
+        </view>
+      </view>
+
+      <view class="detail-card">
+        <text class="detail-section-title">取件人信息</text>
+
+        <view class="detail-row">
+          <text class="detail-label">姓名</text>
+          <text class="detail-value">{{recipientName || '暂无'}}</text>
+        </view>
+
+        <view class="detail-row">
+          <text class="detail-label">电话</text>
+          <view class="detail-value-wrap">
+            <text class="detail-value">{{recipientPhone || '暂无'}}</text>
+            <text class="detail-copy" data-value="{{recipientPhone}}" data-label="电话" bindtap="onCopyTap">复制</text>
+          </view>
+        </view>
+
+        <view class="detail-row detail-row-last">
+          <text class="detail-label">地址</text>
+          <view class="detail-multiline-wrap">
+            <text class="detail-value detail-value-multiline">{{addressText || '暂无'}}</text>
+            <text class="detail-copy" data-value="{{addressText}}" data-label="地址" bindtap="onCopyTap">复制</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+</view>

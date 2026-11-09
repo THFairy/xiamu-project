@@ -1,0 +1,18 @@
+<!-- 用途：保持原有样式展示从后端读取的用户协议正文。 -->
+<view class="page">
+  <view class="status-holder" style="height: {{statusBarHeight}}px;"></view>
+  <view class="nav-bar">
+    <view class="nav-left" bindtap="navigateBack">
+      <image class="nav-back navigation-back-icon" src="/pages/images/index-images/返回.png" mode="aspectFit"></image>
+    </view>
+    <text class="nav-title">用户协议</text>
+    <view class="nav-right-spacer"></view>
+  </view>
+  <scroll-view class="content" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="document-card">
+      <text wx:if="{{loading}}" class="document-section-body">正在加载页面</text>
+      <text wx:elif="{{content}}" class="document-section-body">{{content}}</text>
+      <text wx:else class="document-section-body">暂未配置用户协议</text>
+    </view>
+  </scroll-view>
+</view>

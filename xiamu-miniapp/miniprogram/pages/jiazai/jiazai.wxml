@@ -1,0 +1,6 @@
+<view class="loading-page" aria-label="正在加载页面">
+  <view class="route-loading">
+    <view class="route-loading-spinner"></view>
+    <text class="route-loading-text">正在加载页面</text>
+  </view>
+</view>

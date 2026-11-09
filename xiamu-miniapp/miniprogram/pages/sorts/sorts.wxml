@@ -1,0 +1,130 @@
+<view class="page">
+  <view wx:if="{{isLoading}}" class="route-loading">
+    <view class="route-loading-spinner"></view>
+    <text class="route-loading-text">正在加载页面</text>
+  </view>
+
+  <view wx:else class="page-shell {{pageTransitionClass}}">
+    <view class="content">
+      <view class="status-holder" style="height: {{statusBarHeight}}px;"></view>
+
+      <view class="header">
+        <text class="header-title">{{pageTitle}}</text>
+      </view>
+
+      <scroll-view class="partition-scroll" scroll-x enhanced show-scrollbar="{{false}}" scroll-left="{{partitionScrollLeft}}" bindscroll="onPartitionScroll">
+        <view class="partition-list">
+          <block wx:for="{{partitions}}" wx:key="id">
+            <view
+              class="partition-item {{item.active ? 'partition-item-active' : ''}}"
+              data-key="{{item.key}}"
+              bindtap="onPartitionTap"
+            >
+              <text class="partition-text">{{item.text}}</text>
+            </view>
+          </block>
+        </view>
+      </scroll-view>
+
+      <view
+        class="partition-progress"
+        catchtouchstart="onPartitionProgressTouchStart"
+        catchtouchmove="onPartitionProgressTouchMove"
+        catchtouchend="onPartitionProgressTouchEnd"
+        catchtouchcancel="onPartitionProgressTouchEnd"
+      >
+        <view
+          class="partition-progress-thumb"
+          style="width: {{partitionScrollThumbWidth}}%; left: {{partitionScrollThumbLeft}}%;"
+        ></view>
+      </view>
+
+      <view class="search-bar">
+        <image class="search-icon-image" src="/pages/images/index-images/搜索.jpg" mode="aspectFit"></image>
+        <input
+          class="search-input"
+          type="text"
+          confirm-type="search"
+          placeholder="{{searchPlaceholder}}"
+          value="{{searchKeyword}}"
+          bindinput="onSearchInput"
+          bindconfirm="onSearchConfirm"
+        />
+        <image wx:if="{{searchKeyword}}" class="search-clear" src="/pages/images/index-images/关闭.png" mode="aspectFit" bindtap="onSearchClear"></image>
+      </view>
+
+      <view class="filter-wrap">
+        <view class="filter-bar filter-bar-sort-options">
+          <block wx:for="{{filterMenus}}" wx:key="id" wx:for-item="menu">
+            <block wx:for="{{menu.options}}" wx:key="id" wx:for-item="option">
+              <view
+                class="filter-option-inline {{option.selected ? 'filter-option-inline-active' : ''}}"
+                data-key="{{menu.key}}"
+                data-option-value="{{option.value}}"
+                bindtap="onFilterOptionTap"
+              >
+                <text class="filter-text {{option.selected ? 'filter-text-active' : ''}}">{{option.text}}</text>
+              </view>
+            </block>
+          </block>
+        </view>
+      </view>
+
+      <view class="product-section">
+        <view class="product-section-head">
+          <text class="product-section-title">{{isSearching ? '搜索结果' : '商品列表'}}</text>
+          <text class="product-section-count">共 {{visibleProductTotalCount}} 件</text>
+        </view>
+
+        <scroll-view class="product-scroll" scroll-y enhanced show-scrollbar="{{false}}" lower-threshold="120" bindscrolltolower="onProductScrollToLower">
+          <block wx:if="{{visibleProducts.length}}">
+            <view class="product-list">
+              <block wx:for="{{visibleProducts}}" wx:key="id">
+                <view class="product-card" data-id="{{item.id}}" bindtap="onProductTap">
+                  <view class="product-cover">
+                    <image wx:if="{{item.heroImage}}" class="product-cover-image" src="{{item.heroImage}}" mode="aspectFill"></image>
+                    <text wx:else class="product-cover-text">{{item.coverText || item.coverTitle}}</text>
+                  </view>
+                  <view class="product-info">
+                    <view class="product-title-row">
+                      <text class="product-title">{{item.title}}</text>
+                      <text wx:if="{{item.tag}}" class="product-tag">{{item.tag}}</text>
+                    </view>
+                    <text class="product-subtitle">{{item.subtitle}}</text>
+                    <view class="product-bottom">
+                      <text class="product-price">¥{{item.price}}</text>
+                      <text class="product-action">查看商品</text>
+                    </view>
+                  </view>
+                </view>
+              </block>
+            </view>
+
+            <view wx:if="{{visibleProducts.length}}" class="product-list-footer">
+              <text wx:if="{{visibleProductsReachedEnd}}" class="product-list-end">已经到最后了</text>
+              <text wx:elif="{{visibleProductsLoadingMore}}" class="product-list-loading">
+                <text class="product-list-spinner"></text>
+                <text class="product-list-loading-text">正在加载页面</text>
+              </text>
+              <text wx:else class="product-list-prompt">向下滑动继续加载</text>
+            </view>
+          </block>
+
+          <view wx:else class="product-empty-state">
+            <text class="product-empty-title">{{isSearching ? '没有找到相关商品' : '当前筛选暂无商品'}}</text>
+            <text class="product-empty-desc">{{isSearching ? '换个关键词试试，或者调整分类和筛选条件。' : '你可以切换分类或重新选择筛选条件。'}}</text>
+          </view>
+        </scroll-view>
+      </view>
+    </view>
+
+  </view>
+  <view class="tab-bar">
+    <block wx:for="{{tabs}}" wx:key="key">
+      <view class="tab-item {{currentTab === item.key ? 'tab-item-active' : ''}}" data-key="{{item.key}}" data-path="{{item.path}}" bindtap="onTabTap">
+        <image class="tab-icon-image" src="{{currentTab === item.key ? '/pages/images/index-images/页面切换图标/回到' + item.text + '.png' : '/pages/images/index-images/页面切换图标/' + item.text + '.png'}}" mode="aspectFit"></image>
+        <text class="tab-text">{{item.text}}</text>
+      </view>
+    </block>
+  </view>
+</view>
