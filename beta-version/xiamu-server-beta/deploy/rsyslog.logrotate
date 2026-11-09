@@ -1,0 +1,12 @@
+# 用途：限制服务器常规系统日志的保留数量，避免日志长期占满磁盘。
+/var/log/messages /var/log/secure /var/log/cron {
+    daily
+    rotate 7
+    compress
+    missingok
+    notifempty
+    sharedscripts
+    postrotate
+        /bin/systemctl kill -s HUP rsyslog.service >/dev/null 2>&1 || true
+    endscript
+}

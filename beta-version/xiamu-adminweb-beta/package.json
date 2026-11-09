@@ -6,7 +6,7 @@
         "build": "vite build",
         "build:console": "vite build --mode production-console",
         "preview": "vite preview",
-        "backend": "npm --prefix ../xiamu-server start"
+        "backend": "npm --prefix ../xiamu-server-beta start"
     },
     "dependencies": {
         "@element-plus/icons-vue": "^0.2.7",

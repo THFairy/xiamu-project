@@ -82,12 +82,16 @@
           <div v-for="(item, index) in row.order_items || []" :key="`${row.id}-${index}`" class="flex py-2">
             <el-image
               class="mr-3 rounded"
-              style="width: 30px; height: 30px"
+              style="width: 60px; height: 60px; flex-shrink: 0"
               :src="item.goods_item ? item.goods_item.cover : ''"
+              :preview-src-list="item.goods_item?.cover ? [item.goods_item.cover] : []"
+              preview-teleported
               fit="cover"
             />
             <div class="mt-0">
               <p class="text-blue-500">{{ item.goods_item ? item.goods_item.title : '商品已删除' }}</p>
+              <p class="text-gray-600">机器编码：{{ item.machine_code || '未记录' }}</p>
+              <order-inventory :order-id="item.order_id || row.id" :inventory="item.inventory" @updated="item.inventory = $event" />
               <small v-if="item.sku" class="text-gray-500">{{ item.sku }}</small>
             </div>
           </div>
@@ -209,6 +213,7 @@ import SearchHeader from '~/components/SearchHeader.vue'
 import SearchHeaderItem from '~/components/SearchHeaderItem.vue'
 import ListHeader from '~/components/ListHeader.vue'
 import InfoModal from './InfoModal.vue'
+import OrderInventory from './OrderInventory.vue'
 import StatusModal from './StatusModal.vue'
 import ShipModal from './ShipModal.vue'
 import ExportExcel from './ExportExcel.vue'

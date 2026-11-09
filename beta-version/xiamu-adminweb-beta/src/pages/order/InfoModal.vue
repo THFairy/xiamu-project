@@ -50,6 +50,8 @@
         <div v-for="(item, index) in info.order_items || []" :key="index" class="mb-2 flex">
           <el-image
             :src="item.goods_item ? item.goods_item.cover : ''"
+            :preview-src-list="item.goods_item?.cover ? [item.goods_item.cover] : []"
+            preview-teleported
             fit="cover"
             :lazy="true"
             style="width: 60px; height: 60px"
@@ -57,6 +59,8 @@
           />
           <div class="ml-2 text-sm">
             <p>{{ item.goods_item ? item.goods_item.title : '商品已删除' }}</p>
+            <p class="mt-1 text-xs text-gray-600">机器编码：{{ item.machine_code || '未记录' }}</p>
+            <order-inventory :order-id="item.order_id || info.id" :inventory="item.inventory" readonly />
             <p v-if="item.order_no" class="mt-1 text-xs text-gray-500">订单编号：{{ item.order_no }}</p>
             <p v-if="item.sku" class="mt-1">
               <el-tag type="info" size="small">{{ item.sku }}</el-tag>
@@ -114,6 +118,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import ShipInfoModal from './ShipInfoModal.vue'
+import OrderInventory from './OrderInventory.vue'
 import { formatTimestampValue } from '~/composables/util'
 
 const props = defineProps({

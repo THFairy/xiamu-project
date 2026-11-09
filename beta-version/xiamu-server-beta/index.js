@@ -127,6 +127,7 @@ const {
   handleAdminOrderRefund,
   updateAdminPaymentBatchStatus,
   updateAdminOrderStatus,
+  setAdminOrderInventory,
   updateAdminStaffPermissions,
   recordUserActivityEvent,
   recordUserOnlineSession,
@@ -153,6 +154,7 @@ const {
   listAdminNotices,
   listAdminPaymentBatches,
   listAdminOrders,
+  listAdminOrderInventoryOptions,
   listAdminStaff,
   listAdminUserLevels,
   listAdminUsers,
@@ -1295,6 +1297,8 @@ const adminPermissionMatchers = [
   { method: 'POST', pattern: /^\/admin\/order\/\d+\/handle_refund$/, permission: 'refundOrder,POST' },
   { method: 'GET', pattern: /^\/admin\/order\/\d+\/get_ship_info$/, permission: 'getOrderShipInfo,GET' },
   { method: 'POST', pattern: /^\/admin\/order\/\d+\/status$/, permission: 'updateOrderStatus,POST' },
+  { method: 'GET', pattern: /^\/admin\/order\/\d+\/inventory$/, permission: 'getOrderList,GET' },
+  { method: 'POST', pattern: /^\/admin\/order\/\d+\/inventory$/, permission: 'updateOrderStatus,POST' },
   { method: 'POST', pattern: /^\/admin\/order\/excelexport/, permission: 'exportOrder,POST' },
   { method: 'GET', pattern: /^\/admin\/content_page\/\d+$/, permission: 'getContentPageList,GET' },
   { method: 'GET', pattern: /^\/admin\/content_page\/end-link-category-options$/, permission: 'getContentPageList,GET' },
@@ -1351,6 +1355,7 @@ const adminSearchPermissionMatchers = [
   { pattern: /^\/admin\/recycle\/products\/\d+$/, params: ['title', 'categoryKey', 'profileKey'], permission: 'searchRecycleProduct,GET' },
   { pattern: /^\/admin\/recycle\/submissions\/\d+$/, params: ['title', 'status', 'categoryKey'], permission: 'searchRecycleSubmission,GET' },
   { pattern: /^\/admin\/order\/\d+$/, params: ['no', 'name', 'phone', 'starttime', 'endtime'], permission: 'searchOrder,GET' },
+  { pattern: /^\/admin\/order\/\d+\/inventory$/, params: ['keyword'], permission: 'searchOrder,GET' },
   { pattern: /^\/admin\/goods_comment\/\d+$/, params: ['title'], permission: 'searchComment,GET' },
   { pattern: /^\/admin\/content_page\/\d+$/, params: ['title', 'tutorialCategoryId'], permission: 'searchContentPage,GET' },
   { pattern: /^\/admin\/homepage_banner\/\d+$/, params: ['title'], permission: 'searchHomepageBanner,GET' },
@@ -4666,6 +4671,17 @@ const server = http.createServer(async (request, response) => {
       return;
     }
 
+    if (request.method === 'GET' && /^\/admin\/order\/\d+\/inventory$/.test(requestUrl.pathname)) {
+      try {
+        const orderId = Number(requestUrl.pathname.split('/')[3] || 0);
+        const options = await listAdminOrderInventoryOptions(orderId, requestUrl.searchParams.get('keyword') || '');
+        sendAdminSuccess(response, options);
+      } catch (error) {
+        sendAdminError(response, 500, error && error.message ? error.message : String(error));
+      }
+      return;
+    }
+
     if (request.method === 'POST' && requestUrl.pathname === '/admin/order/delete_all') {
       try {
         const body = await parseJsonBody(request);
@@ -4778,6 +4794,18 @@ const server = http.createServer(async (request, response) => {
           return;
         }
         sendAdminSuccess(response, data, '订单状态已更新');
+      } catch (error) {
+        sendAdminError(response, 400, error && error.message ? error.message : String(error));
+      }
+      return;
+    }
+
+    if (request.method === 'POST' && /^\/admin\/order\/\d+\/inventory$/.test(requestUrl.pathname)) {
+      try {
+        const body = await parseJsonBody(request);
+        const orderId = Number(requestUrl.pathname.split('/')[3] || 0);
+        const inventory = await setAdminOrderInventory(orderId, body.inventoryId || 0);
+        sendAdminSuccess(response, inventory, '机器关联已更新');
       } catch (error) {
         sendAdminError(response, 400, error && error.message ? error.message : String(error));
       }
