@@ -450,11 +450,18 @@ const parseMultipartFormData = async (request) => {
 
 const projectRootDir = __dirname;
 const uploadRootDir = path.resolve(projectRootDir, 'cloud-data/uploads');
+const staticRootDir = path.resolve(projectRootDir, 'static');
 const consoleStaticRootDir = path.resolve(__dirname, config.consoleStaticDir);
 
-const resolveUploadFilePath = (relativePath) => {
-  const resolvedPath = path.resolve(uploadRootDir, relativePath);
-  if (!isPathInside(uploadRootDir, resolvedPath)) {
+const resolvePublicFilePath = (rootDir, relativePath) => {
+  let decodedRelativePath = '';
+  try {
+    decodedRelativePath = decodeURIComponent(String(relativePath || ''));
+  } catch (_error) {
+    return null;
+  }
+  const resolvedPath = path.resolve(rootDir, decodedRelativePath);
+  if (!isPathInside(rootDir, resolvedPath)) {
     return null;
   }
 
@@ -464,6 +471,9 @@ const resolveUploadFilePath = (relativePath) => {
 
   return resolvedPath;
 };
+
+const resolveUploadFilePath = (relativePath) => resolvePublicFilePath(uploadRootDir, relativePath);
+const resolveStaticFilePath = (relativePath) => resolvePublicFilePath(staticRootDir, relativePath);
 
 const saveUploadedFile = (file, subdir = 'misc') => {
   const extension = path.extname(String(file.filename || '')).trim() || '.bin';
@@ -3357,6 +3367,21 @@ const server = http.createServer(async (request, response) => {
   if (request.method === 'GET' && requestUrl.pathname.startsWith('/uploads/')) {
     const relativePath = requestUrl.pathname.replace(/^\/uploads\//, '');
     const resolvedPath = resolveUploadFilePath(relativePath);
+    if (!resolvedPath) {
+      sendJson(response, 403, { success: false, message: 'forbidden' });
+      return;
+    }
+    if (!fs.existsSync(resolvedPath) || !fs.statSync(resolvedPath).isFile()) {
+      sendJson(response, 404, { success: false, message: 'file not found' });
+      return;
+    }
+    sendFile(response, resolvedPath);
+    return;
+  }
+
+  if (request.method === 'GET' && requestUrl.pathname.startsWith('/static/')) {
+    const relativePath = requestUrl.pathname.replace(/^\/static\//, '');
+    const resolvedPath = resolveStaticFilePath(relativePath);
     if (!resolvedPath) {
       sendJson(response, 403, { success: false, message: 'forbidden' });
       return;

@@ -185,7 +185,7 @@ export const localProductCatalog = [
       "/pages/images/sorts-images/测试2.jpg",
       "/pages/images/sorts-images/测试3.jpg"
     ],
-    "heroImage": "https://xiamuclub.com/static/images/sorts-images/测试1.jpg",
+    "heroImage": "http://127.0.0.1:8081/static/images/sorts-images/测试1.jpg",
     "inStock": true,
     "recyclable": false,
     "premiumCondition": true,

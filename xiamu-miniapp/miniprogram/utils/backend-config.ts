@@ -1,7 +1,7 @@
-const RAW_BACKEND_BASE_URL = 'https://xiamuclub.com'
-const RAW_STATIC_ASSET_BASE_URL = 'https://xiamuclub.com'
-const BACKEND_BASE_URL_STORAGE_KEY = 'runtime-backend-base-url'
-const STATIC_ASSET_BASE_URL_STORAGE_KEY = 'runtime-static-asset-base-url'
+const RAW_BACKEND_BASE_URL = 'http://127.0.0.1:8081'
+const RAW_STATIC_ASSET_BASE_URL = 'http://127.0.0.1:8081'
+const BACKEND_BASE_URL_STORAGE_KEY = 'beta-runtime-backend-base-url'
+const STATIC_ASSET_BASE_URL_STORAGE_KEY = 'beta-runtime-static-asset-base-url'
 
 const LOCAL_IMAGE_PREFIX = '/pages/images/'
 const STATIC_IMAGE_PREFIX = '/static/images/'
@@ -37,7 +37,7 @@ const isUnsafeRuntimeBaseUrl = (value: string): boolean => {
     return true
   }
 
-  if (parsedUrl.protocol !== 'https') {
+  if (parsedUrl.protocol !== 'https' && !isLoopbackHostname(parsedUrl.hostname)) {
     return true
   }
 
@@ -187,8 +187,9 @@ export const getBackendUnavailableReason = (): string => {
     return '未配置后端服务地址'
   }
 
-  if (!/^https:\/\//i.test(backendBaseUrl)) {
-    return '小程序仅支持通过 HTTPS 连接后端服务'
+  const parsedUrl = parseBaseUrlParts(backendBaseUrl)
+  if (!parsedUrl || (parsedUrl.protocol !== 'https' && !isLoopbackHostname(parsedUrl.hostname))) {
+    return '小程序仅支持通过 HTTPS 或本机回环地址连接后端服务'
   }
 
   return ''
